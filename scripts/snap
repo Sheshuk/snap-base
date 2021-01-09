@@ -1,0 +1,40 @@
+#!/bin/env python3
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+from snap.config import read_yaml, build_node
+
+import asyncio
+import argparse
+
+
+import os, sys
+# get current path and add it for the modules import
+current_dir = os.path.abspath(os.getcwd())
+sys.path.append(current_dir)
+
+async def main():
+    parser = argparse.ArgumentParser(description='SuperNova Async Pipeline')
+    parser.add_argument('-c','--config',
+            help='Node configuration file',default='./config.yml')
+    parser.add_argument('-n','--name',metavar='NAME',
+            help='Configuration section name',default='node')
+    parser.add_argument('-v','--verbose', action='store_true')
+
+    args = parser.parse_args()
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+
+    cfg = read_yaml(args.config)[args.name]
+ 
+    node = build_node(cfg)
+    print(node)
+    try:
+        await asyncio.gather(*node)
+    except KeyboardInterrupt:
+        logger.info("Bye!")
+
+asyncio.run(main())
+    
