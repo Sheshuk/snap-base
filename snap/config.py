@@ -1,3 +1,4 @@
+from collections import abc
 import logging
 logger = logging.getLogger(__name__)
 
@@ -57,8 +58,6 @@ def build_object(cfg):
         return obj(**args)
 
 def parse(cfg):
-
-    from collections import abc
     if isinstance(cfg, str):
         logger.info(f'Parse str {cfg}')
         if(cfg.startswith(obj_label)):
@@ -79,6 +78,29 @@ def parse(cfg):
     logger.info(f'res = {res}')
     return res
 
+def build_chain(steps=[], source=None, to=[]):
+    "create a chain from config"
+    def _force_obj(s):
+        "make 's' to start with obj_label"
+        def _add_obj(s):
+            if s.startswith(obj_label):
+                return s
+            else:
+                return obj_label+s
+
+        if isinstance(s,str):
+            return _add_obj(s)
+        elif isinstance(s,abc.Mapping):
+            return {_add_obj(key): val for key,val in s.items()}
+        else:
+            return s
+
+    #all steps and sources must be objects
+    source=  _force_obj(source)
+    steps = [_force_obj(s) for s in steps]
+     
+    return chain(*parse(steps), source=parse(source), targets=parse(to))
+
 
 def build_node(config):
     """
@@ -87,24 +109,29 @@ def build_node(config):
     parameters:
     * config - a dict of chain configurations.
             Each chain configuration is a dict containing:
-                * elements (iterable): list with processing steps (async gen func/buffer object/)
+                * steps (iterable): list with processing steps (async gen func/buffer object/)
                 * source (async generator, optional): where the data appears
-                * targets (list of str): names of chains, where the output is forwarded
+                * to (list of str, optional): names of chains, where the output is forwarded
             If a chain has no source, it should be receiving data from another chain (its key should be listed in targets)
-            If a chain has no targets, the data is not forwarded (i.e. end of a pipeline)
+            If a chain has no targets (to), the data is not forwarded (i.e. end of a pipeline)
 
     returns: 
         list of asyncio tasks, to be run with `asyncio.gather`.
     """
-    config = parse(config)
+
     #create input queues for chains without sources
     for name,chain_cfg in config.items():
+        print(f'chain: {name}: {chain_cfg}')
         if chain_cfg.get('source',None) is None:
             chain_cfg['source'] = asyncio.Queue()
-    #link targets to input queues
+
     for name,chain_cfg in config.items():
-        chain_cfg['targets'] = [config[t]['source'] for t in chain_cfg.get('targets',[])]
+        #link targets to input queues
+        tgts = chain_cfg.get('to',[])
+        if isinstance(tgts, str):
+            tgts=[tgts]
+        chain_cfg['to'] = [config[t]['source'] for t in tgts]
+
     #create chains
-    tasks = [chain(*cfg.get('elements',[]), source=cfg['source'], targets=cfg['targets'])
-             for cfg in config.values()]
+    tasks = [build_chain(**cfg) for cfg in config.values()]
     return tasks
