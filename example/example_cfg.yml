@@ -1,0 +1,35 @@
+node_branching:
+  generate:
+    source: 
+      example.random_walk: {delay: 0.1}
+    steps:
+      - example.dump_with_timestamp: {fmt: '%X:  generated '}
+    to: [process_positive, process_high]
+
+  process_positive:
+    steps:
+      - example.threshold: {val: 0}
+      - example.Buffer: {buffer_time: 1}
+      - example.count
+      - example.dump: {prefix: 'Positive values: '}
+
+  process_high:
+    steps:
+      - example.threshold: {val: 3}
+      - example.Buffer: {buffer_time: 1}
+      - example.count
+      - example.threshold: {val: 0} #discard values lower than 
+      - example.dump: {prefix: 'We even have values>3: '}
+
+
+node_parallel:
+  generate:
+    source: 
+      example.gen_timestamp: {delay: 1}
+    steps:
+      - snap.Parallel: 
+          function: {obj@example.blocking: {delay: 2}}
+          max_workers: 20
+      - example.measure_latency
+      - example.dump: {prefix: "latency: "}
+
