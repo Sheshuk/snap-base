@@ -30,7 +30,6 @@ async def main():
     cfg = read_yaml(args.config)[args.name]
  
     node = build_node(cfg)
-    print(node)
     try:
         await asyncio.gather(*node)
     except KeyboardInterrupt:
