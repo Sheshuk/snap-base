@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
+with open('README.md') as f:
+    readme = f.read()
 
 setup(name='snap-base',
         version='0.1',
-        description='SuperNova Async Pipeline base package',
+        description='SuperNova Async Pipeline: base package',
+        long_description=readme,
+        long_description_content_type='text/markdown',
+        url='https://github.com/Sheshuk/snap-base',
         author='Andrey Sheshukov',
         author_email='ash@jinr.ru',
         licence='GNU GPLv3',
