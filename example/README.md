@@ -10,15 +10,25 @@ SNAP uses python [asyncio](https://docs.python.org/library/asyncio.html) approac
 
 # Pipeline structure
 
-Each pipeline application is defined as [node](#node), which consists of [chains](#chain), which is composed of [sources](#source) and [steps](#step) processing the [data](#data).
+Each pipeline application is defined as [node](#node), which consists of [chains](#chain), which is composed of [sources](#source) and [steps](#step) processing the [data](#data-portion).
+
+This section defines the basic terms, used in SNAP, and how to use them:
+* [Node](#node)
+* [Chain](#chain)
+* [Source](#source)
+* [Step](#step)
+  * [Transformation](#transformation)
+  * [Filter](#filter)
+  * [Buffer](#buffer)
+* [Data](#data-portion)
 
 
-#### Data portion
+### Data portion
 Pipeline processes data in portions.
 This portion can be any python object - a number, tuple, string, function, etc.
 Data is produced by the [source](#source) and processed in the [steps](#step).
 
-#### Source
+### Source
 An asynchronous (or synchronous) generator producing [data](#data)
 
 Simple example of a [source](#source) from [example.py](example/example.py):
@@ -73,7 +83,7 @@ steps:
 ```
 > :warning: Arguments are passed to function/functor constructor as **keyword** args
 
-### Filter
+#### Filter
 Here the filter is a [step](#step) that receives all the data portions, but produces results only after some of them.
 
 It can be defined as an asynchronous coroutine:
@@ -109,19 +119,45 @@ steps:
     - foo.bar.threshold: {val: 1}
 ```
 
-### Buffer
+#### Buffer
 
-A [step](#step) which processes the data, but the input loop from the output loop. 
+"Buffer" is a [step](#step) which processes the data, but the input loop from the output loop. 
+An example could be buffering data, and producing the accumulated data 
 
+A buffer object is defined in python as
 
 ### Chain
 
 Chain defines a single pipeline, getting the data from its [source](#source) and processing it in the [steps](#step) one by one, and optionally forwarding it to one or several other chains (targets).
-Chain is defined in the configuration file and should consist of a *name*, [source](source), [steps](step) and  *targets*(optional)
 
+Chain is defined in the configuration file and consist of a *NAME* as a dict key, a [*SOURCE*](source) in `source` section, [*STEPS*](step) in `steps` section and  [*TARGETS*] in `to` section:
+
+```yml
+    NAME:
+        source:
+            SOURCE
+        steps:
+            - STEP1
+            - STEP2
+        to: [TARGET1, TARGET2]
+        #`to: TARGET` in case of just one target
+```
+
+If `source` section is missing, the source is an asyncis chain can only receive data from another chain (if it's *NAME* is listed in another chain's *TARGETS*).
+
+If `steps` are missing, then the chain will just draw data from source and pass to the targets.
+
+If `to` is missing, then the data from last step is not forwarded.
 
 ### Node
-A single python process, which consists of one or more [chains](#chain) and runs them in the loop.
+A single python process, which consists of one or more [chains](#chain) and runs all of them simulatneously (asynchronously).
 
+It is defined in the configuration file as a mapping of node name and it's chains:
 
+```yml
+NODENAME:
+    chain1
+    chain2
+```
 
+Chain names within the file must be different.
