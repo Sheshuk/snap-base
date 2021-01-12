@@ -122,15 +122,39 @@ steps:
 #### Buffer
 
 "Buffer" is a [step](#step) which processes the data, but the input loop from the output loop. 
-An example could be buffering data, and producing the accumulated data 
+An example could be buffering data, and producing the accumulated data every 10 seconds.
 
-A buffer object is defined in python as
+A buffer object is defined as a python class, implementing `async def put` and `async def get` methods.
+Example:
 
+```python
+class Buffer:
+    def __init__(self, buffer_time=10):
+        """object to accumulate the data in the time bins"""
+        self.data = []
+        self.buffer_time = buffer_time
+    async def put(self, data):
+        self.data+=[data]
+
+    async def get(self):
+        #will yield the data array every approx every buffer_time
+        await asyncio.sleep(self.buffer_time)
+        res = self.data
+        self.data = []
+        return res
+```
+
+And in configuration file is defined as
+```yml
+steps:
+    - foo.bar.Buffer: {buffer_time: 10} 
+```
+> :information_source: A buffer can also be used as a [source](#source) of a chain. In that case, if the data flows from another chain, it will be `put` in the buffer.
 ### Chain
 
 Chain defines a single pipeline, getting the data from its [source](#source) and processing it in the [steps](#step) one by one, and optionally forwarding it to one or several other chains (targets).
 
-Chain is defined in the configuration file and consist of a *NAME* as a dict key, a [*SOURCE*](source) in `source` section, [*STEPS*](step) in `steps` section and  [*TARGETS*] in `to` section:
+Chain is defined in the configuration file and consist of a *NAME* as a dict key, a [*SOURCE*](#source) in `source` section, [*STEPS*](#step) in `steps` section and  [*TARGETS*] in `to` section:
 
 ```yml
     NAME:
