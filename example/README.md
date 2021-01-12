@@ -1,14 +1,24 @@
 # Usage example
-SNAP allows user to construct pipelines from the user-defined steps and methods of the data processing.
+SNAP allows user to construct pipelines from the user-defined steps and methods of the data processing. 
 
-## Glossary
+## Asynchronous pipeline
 
-### Data portion
+The goal of the pipeline is to process the input data in several consequtive steps with minimal latency. 
+In most cases, when handling the data in real time, some steps require idle periods of waiting for the data to come from the upstream sourses. 
+SNAP uses python [asyncio](https://docs.python.org/library/asyncio.html) approach to make these waits asynchronous, so that one part of the pipeline can continue processing, while the other is waiting.
+
+
+# Pipeline structure
+
+Each pipeline application is defined as [node](#node), which consists of [chains](#chain), which is composed of [sources](#source) and [steps](#step) processing the [data](#data).
+
+
+#### Data portion
 Pipeline processes data in portions.
 This portion can be any python object - a number, tuple, string, function, etc.
 Data is produced by the [source](#source) and processed in the [steps](#step).
 
-### Source
+#### Source
 An asynchronous (or synchronous) generator producing [data](#data)
 
 Simple example of a [source](#source) from [example.py](example/example.py):
@@ -28,10 +38,10 @@ In practical cases it can be yielding the data when it arrives in the file or vi
 Step defines any data manipulation. 
 Steps can be vaguely classified into [transformations](#transformation), [filters](#filter) and [buffers](#buffer).
 
-In the configuration file steps are provided as a list in the `steps:` function inside the [chain](#chain) definition.
+In the configuration file steps are provided as a list in the `steps:` section inside the [chain](#chain) definition.
 
 #### Transformation
-It's a [ste](#step) that manipulates one data portion, and returns the result, which will be fed to the next step.
+It's a [step](#step) that manipulates one data portion, and returns the result, which will be fed to the next step.
 
 Can be just a function on the data, like this example
 ```python
@@ -63,7 +73,7 @@ steps:
 ```
 > :warning: Arguments are passed to function/functor constructor as **keyword** args
 
-###Filter
+### Filter
 Here the filter is a [step](#step) that receives all the data portions, but produces results only after some of them.
 
 It can be defined as an asynchronous coroutine:
@@ -99,7 +109,7 @@ steps:
     - foo.bar.threshold: {val: 1}
 ```
 
-###Buffer
+### Buffer
 
 A [step](#step) which processes the data, but the input loop from the output loop. 
 
