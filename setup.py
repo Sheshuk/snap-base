@@ -6,7 +6,7 @@ with open('README.md') as f:
     readme = f.read()
 
 setuptools.setup(name='snap-base',
-        version='1.0.0',
+        version='1.0.1',
         description='SuperNova Async Pipeline: base package',
         long_description=readme,
         long_description_content_type='text/markdown',
