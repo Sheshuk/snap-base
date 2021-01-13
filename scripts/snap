@@ -16,18 +16,18 @@ current_dir = os.path.abspath(os.getcwd())
 sys.path.append(current_dir)
 
 async def main():
-    parser = argparse.ArgumentParser(description='SuperNova Async Pipeline')
-    parser.add_argument('-c','--config',
-            help='Node configuration file',default='./config.yml')
-    parser.add_argument('-n','--name',metavar='NAME',
-            help='Configuration section name',default='node')
+    parser = argparse.ArgumentParser(description='SuperNova Async Pipeline: run a given NODE from config')
+    parser.add_argument('config',
+            help='Nodes configuration file')
+    parser.add_argument('-n','--node',metavar='NAME',
+            help='Node name (default="node")',default='node')
     parser.add_argument('-v','--verbose', action='store_true')
 
     args = parser.parse_args()
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    cfg = read_yaml(args.config)[args.name]
+    cfg = read_yaml(args.config)[args.node]
  
     node = build_node(cfg)
     try:

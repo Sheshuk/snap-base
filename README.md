@@ -34,7 +34,7 @@ Package [snap-combine](https://github.com/Sheshuk/snap-combine) contains more ut
 Go to the directory where your 
 Run the node named `node_name` from `config.yml`:
 ```shell
-snap -c config.yml -n node_name
+snap config.yml -n node_name
 ```
 
 # Example
@@ -43,7 +43,7 @@ Put the example module [example.py](example/example.py) and configuration [examp
 
 Run the example node with branching:
 ```shell
-snap -c example_cfg.yml -n node_branching
+snap example_cfg.yml -n node_branching
 ```
 And you should see the output of the generated random walk , and it's analysis in two branches.
 
