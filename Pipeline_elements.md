@@ -1,14 +1,11 @@
-# Usage example
-SNAP allows user to construct pipelines from the user-defined steps and methods of the data processing. 
-
-## Asynchronous pipeline
+# Asynchronous pipeline
 
 The goal of the pipeline is to process the input data in several consequtive steps with minimal latency. 
 In most cases, when handling the data in real time, some steps require idle periods of waiting for the data to come from the upstream sourses. 
 SNAP uses python [asyncio](https://docs.python.org/library/asyncio.html) approach to make these waits asynchronous, so that one part of the pipeline can continue processing, while the other is waiting.
 
 
-# Pipeline structure
+## Pipeline structure
 
 Each pipeline application is defined as [node](#node), which consists of [chains](#chain), which is composed of [sources](#source) and [steps](#step) processing the [data](#data-portion).
 
