@@ -30,6 +30,7 @@ async def main():
     cfg = read_yaml(args.config)[args.node]
  
     node = build_node(cfg)
+    logger.debug(f"Constructed node: {node}")
     try:
         await asyncio.gather(*node)
     except KeyboardInterrupt:

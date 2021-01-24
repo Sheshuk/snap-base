@@ -121,7 +121,6 @@ def build_node(config):
 
     #create input queues for chains without sources
     for name,chain_cfg in config.items():
-        print(f'chain: {name}: {chain_cfg}')
         if chain_cfg.get('source',None) is None:
             chain_cfg['source'] = asyncio.Queue()
 
