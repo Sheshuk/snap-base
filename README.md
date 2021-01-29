@@ -1,4 +1,4 @@
-# SuperNova Async Pipeline: base package
+# SuperNova Async Pipeline ![PyPI](https://img.shields.io/pypi/v/snap-base) ![Release](https://img.shields.io/github/v/release/Sheshuk/snap-base?include_prereleases)
 
 This package contains base for asynchronous real-time data analysis pipeline.
 It was designed for the supernova neutrino signal detection.
