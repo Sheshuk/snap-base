@@ -4,13 +4,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from snap.config import read_yaml, build_node
+from snap.config import read_yaml, build_node, ConfigError
 
 import asyncio
 import argparse
 
-
 import os, sys
+import signal
+
 # get current path and add it for the modules import
 current_dir = os.path.abspath(os.getcwd())
 sys.path.append(current_dir)
@@ -21,20 +22,42 @@ async def main():
             help='Nodes configuration file')
     parser.add_argument('-n','--node',metavar='NAME',
             help='Node name (default="node")',default='node')
-    parser.add_argument('-v','--verbose', action='store_true')
+    parser.add_argument('-v','--verbose', metavar='LOG_LEVEL',
+            help='Override the log level', choices=['CRITICAL','ERROR','WARNING','INFO','DEBUG'])
 
     args = parser.parse_args()
     if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=args.verbose)
 
-    cfg = read_yaml(args.config)[args.node]
+    cfg = read_yaml(args.config)
+    if args.node not in cfg:
+        all_nodes = list(cfg.keys())
+        logger.error(f'Could not find node "{args.node}" in config "{args.config}".'+ \
+        f'\n Available nodes are: {all_nodes}'+\
+        f'\n Run `snap {args.config} -n <node_name>`'
+        )
+        return 1
  
-    node = build_node(cfg)
-    logger.debug(f"Constructed node: {node}")
+    try:
+        node = build_node(cfg[args.node])
+        logger.debug(f"Constructed node: {node}")
+    except ConfigError as e:
+        while e:
+            logger.error(e)
+            e = e.__cause__
+        return 1
+
     try:
         await asyncio.gather(*node)
-    except KeyboardInterrupt:
-        logger.info("Bye!")
+    except asyncio.CancelledError:
+           logger.info("Tasks cancelled")
+
+def shutdown(signum, frame):
+    for t in asyncio.all_tasks():
+        t.cancel()
+    
+signal.signal(signal.SIGTERM,shutdown)
+signal.signal(signal.SIGINT,shutdown)
 
 asyncio.run(main())
-    
+
