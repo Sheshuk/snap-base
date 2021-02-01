@@ -19,13 +19,15 @@ def read_yaml(fname):
 
 root_package = 'snap'
 
+class ConfigError(Exception):
+    def __init__(self,msg, where):
+        super().__init__(f'{msg} in {where}')
+
 def find_module(name):
         logger.debug(f'search for Module {name}')
         if name in globals():
-            logger.debug('found in globals')
             return globals().get(name)
         else:
-            logger.debug(f'trying to import {name} from sys.')
             import importlib
             return importlib.import_module(name, root_package)
 
@@ -50,7 +52,7 @@ def find_obj(name):
 obj_label = "obj@"
 
 def build_object(cfg):
-    logger.info(f'Build object from {cfg}')
+    logger.debug(f'Build object from {cfg}')
     if len(cfg)!=1:
         raise ValueError(f'Object config keys {list(cfg.keys())} !=1')
     for key,args in cfg.items():
@@ -58,27 +60,30 @@ def build_object(cfg):
         return obj(**args)
 
 def parse(cfg):
-    if isinstance(cfg, str):
-        logger.info(f'Parse str {cfg}')
-        if(cfg.startswith(obj_label)):
-            res = find_obj(cfg[len(obj_label):])
+    try:
+        if isinstance(cfg, str):
+            logger.debug(f'Parse str {cfg}')
+            if(cfg.startswith(obj_label)):
+                res = find_obj(cfg[len(obj_label):])
+            else:
+                res = cfg
+        elif isinstance(cfg, abc.Sequence):
+            logger.debug(f'Parse collection: {cfg}')
+            res = [parse(c) for c in cfg]
+        elif isinstance(cfg, abc.Mapping):
+            logger.debug(f'Parse dict: {cfg}')
+            res = {key: parse(val) for key,val in cfg.items()}
+            if any([key.startswith(obj_label) for key in res]):
+                res = build_object(res)
         else:
+            logger.debug(f'Parse other {cfg}')
             res = cfg
-    elif isinstance(cfg, abc.Sequence):
-        logger.info(f'Parse collection: {cfg}')
-        res = [parse(c) for c in cfg]
-    elif isinstance(cfg, abc.Mapping):
-        logger.info(f'Parse dict: {cfg}')
-        res = {key: parse(val) for key,val in cfg.items()}
-        if any([key.startswith(obj_label) for key in res]):
-            res = build_object(res)
-    else:
-        logger.info(f'Parse other {cfg}')
-        res = cfg
-    logger.info(f'res = {res}')
+        logger.debug(f'res = {res}')
+    except Exception as e:
+        raise ConfigError('Configuration error',cfg) from e
     return res
 
-def build_chain(steps=[], source=None, to=[]):
+def build_chain(steps=[], source=None, to=[], name='unnamed'):
     "create a chain from config"
     def _force_obj(s):
         "make 's' to start with obj_label"
@@ -98,8 +103,10 @@ def build_chain(steps=[], source=None, to=[]):
     #all steps and sources must be objects
     source=  _force_obj(source)
     steps = [_force_obj(s) for s in steps]
+
+    logger.info(f'Constructed chain "{name}')
      
-    return chain(*parse(steps), source=parse(source), targets=parse(to))
+    return chain(*parse(steps), source=parse(source), targets=parse(to), name=name)
 
 
 def build_node(config):
@@ -132,5 +139,5 @@ def build_node(config):
         chain_cfg['to'] = [config[t]['source'] for t in tgts]
 
     #create chains
-    tasks = [build_chain(**cfg) for cfg in config.values()]
+    tasks = [build_chain(**chain_cfg, name=name) for name,chain_cfg in config.items()]
     return tasks
