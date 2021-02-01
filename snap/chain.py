@@ -78,6 +78,8 @@ async def chain(*elements, source, targets=[], name='unnamed chain'):
     #chain all the elements
     for e in elements:
         gen = wrap(e)(gen)
+
+    logger.info(f'Starting chain: {name}')
     #run the chain
     try:
         async for d in gen:
@@ -85,5 +87,5 @@ async def chain(*elements, source, targets=[], name='unnamed chain'):
             for t in targets:
                 await t.put(d)
     except asyncio.CancelledError as e:
-        logger.info(f'Chain "{name}" stopped')
+        logger.info(f'Stopping chain: {name}')
 
