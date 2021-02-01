@@ -24,7 +24,6 @@ class ConfigError(Exception):
         super().__init__(f'{msg} in {where}')
 
 def find_module(name):
-        logger.debug(f'search for Module {name}')
         if name in globals():
             return globals().get(name)
         else:
@@ -33,17 +32,12 @@ def find_module(name):
 
 
 def find_obj(name):
-    logger.debug(f'search for Object {name}')
-    
     if name in globals():
-        logger.debug('found in globals')
         return globals().get(name)
     else:
         if '.' in name:
             modname,vname = name.rsplit('.',1)
-            logger.debug(f'split to {modname}, {vname}')
             module = find_module(modname)
-            logger.debug(f'Found module {module}')
             return getattr(module, vname)
         else: 
             raise KeyError(f"Object {name} not found")
@@ -52,7 +46,6 @@ def find_obj(name):
 obj_label = "obj@"
 
 def build_object(cfg):
-    logger.debug(f'Build object from {cfg}')
     if len(cfg)!=1:
         raise ValueError(f'Object config keys {list(cfg.keys())} !=1')
     for key,args in cfg.items():
@@ -62,23 +55,21 @@ def build_object(cfg):
 def parse(cfg):
     try:
         if isinstance(cfg, str):
-            logger.debug(f'Parse str {cfg}')
             if(cfg.startswith(obj_label)):
                 res = find_obj(cfg[len(obj_label):])
             else:
                 res = cfg
         elif isinstance(cfg, abc.Sequence):
-            logger.debug(f'Parse collection: {cfg}')
             res = [parse(c) for c in cfg]
         elif isinstance(cfg, abc.Mapping):
-            logger.debug(f'Parse dict: {cfg}')
             res = {key: parse(val) for key,val in cfg.items()}
             if any([key.startswith(obj_label) for key in res]):
                 res = build_object(res)
         else:
-            logger.debug(f'Parse other {cfg}')
             res = cfg
-        logger.debug(f'res = {res}')
+
+        if(res!=cfg):
+            logger.debug(f'parse: {cfg} = {res}')
     except Exception as e:
         raise ConfigError('Configuration error',cfg) from e
     return res
@@ -99,14 +90,15 @@ def build_chain(steps=[], source=None, to=[], name='unnamed'):
             return {_add_obj(key): val for key,val in s.items()}
         else:
             return s
-
+    
     #all steps and sources must be objects
     source=  _force_obj(source)
     steps = [_force_obj(s) for s in steps]
-
-    logger.info(f'Constructed chain "{name}')
-     
-    return chain(*parse(steps), source=parse(source), targets=parse(to), name=name)
+    try:
+        logger.debug(f'Building chain "{name}"')
+        return chain(*parse(steps), source=parse(source), targets=parse(to), name=name)
+    except Exception as e:
+        raise ConfigError(f'Error building chain "{name}"','node') from e
 
 
 def build_node(config):
