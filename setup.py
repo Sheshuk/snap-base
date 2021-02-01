@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-
+from snap import __version__
 import setuptools 
 
 with open('README.md') as f:
     readme = f.read()
 
 setuptools.setup(name='snap-base',
-        version='1.0.2',
+        version=__version__,
         description='SuperNova Async Pipeline: base package',
         long_description=readme,
         long_description_content_type='text/markdown',
