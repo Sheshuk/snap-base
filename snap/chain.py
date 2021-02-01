@@ -1,6 +1,10 @@
 import asyncio
 import inspect
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 def _wrap_function(fun):
     async def _f(source):
         async for d in source:
@@ -52,7 +56,7 @@ def wrap_source(a):
         raise TypeError(f'{a} has wrong type {type(a)}')
 
         
-async def chain(*elements, source, targets=[]):
+async def chain(*elements, source, targets=[], name='unnamed chain'):
     """Create chain of processing elements
     
     parameters:
@@ -65,6 +69,7 @@ async def chain(*elements, source, targets=[]):
 
         targets (iterable) - collection of buffer objects, where the results will be pushed.
                   If empty, the data output after the last element is lost
+        name - the chain name, to provide  meaningful output
         
     returns:
         awaitable, which can be run as an asynchronous task
@@ -74,7 +79,11 @@ async def chain(*elements, source, targets=[]):
     for e in elements:
         gen = wrap(e)(gen)
     #run the chain
-    async for d in gen:
-        #send data to targets
-        for t in targets:
-            await t.put(d)
+    try:
+        async for d in gen:
+            #send data to targets
+            for t in targets:
+                await t.put(d)
+    except asyncio.CancelledError as e:
+        logger.info(f'Chain "{name}" stopped')
+
