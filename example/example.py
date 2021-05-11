@@ -72,6 +72,9 @@ async def gen_timestamp(delay=1):
         await asyncio.sleep(delay)
         yield datetime.datetime.now()
 
+def to_str(data):
+    return str(data)
+
 def measure_latency(ts):
     dt = datetime.datetime.now()-ts
     return dt
