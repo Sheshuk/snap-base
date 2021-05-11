@@ -5,7 +5,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 async def recv(address):
-    """receive data from zmq.PULL socket on given address"""
+    """Receive data from zmq.PULL socket on given address
+    Args:
+        address: socket address to *bind*, in format "<protocol>/<address>:<port>", 
+        for example "tcp:/127.0.0.1:9000"
+    """
     with zmq.asyncio.Context() as ctx:
         with ctx.socket(zmq.PULL) as s:
             logger.info(f'Listen to address="{address}"')
@@ -16,7 +20,11 @@ async def recv(address):
                 yield data
 
 def send(address):
-    """send data to given addresses via zmq.PUSH socket""" 
+    """Send data to given addresses via zmq.PUSH socket
+    Args:
+        address: socket address to *connect*, in format "<protocol>/<address>:<port>", 
+        for example "tcp:/127.0.0.1:9000"
+    """ 
     if isinstance(address, str):
         address=[address]
     async def _f(source):
