@@ -1,14 +1,27 @@
+"""
+=================
+ZeroMQ  interface
+=================
+
+Wrapper around `pyzmq <https://github.com/zeromq/pyzmq>`_ module
+"""
+
 import asyncio
 import zmq.asyncio
 
 import logging
 logger = logging.getLogger(__name__)
 
-async def recv(address):
+async def recv(address: str):
     """Receive data from zmq.PULL socket on given address
+
     Args:
-        address: socket address to *bind*, in format "<protocol>/<address>:<port>", 
-        for example "tcp:/127.0.0.1:9000"
+        address: 
+            socket address to *bind*, in format ``<protocol>/<address>:<port>``,
+            for example ``tcp:/127.0.0.1:9000``
+
+    Yields: 
+        received message
     """
     with zmq.asyncio.Context() as ctx:
         with ctx.socket(zmq.PULL) as s:
@@ -19,11 +32,13 @@ async def recv(address):
                 logger.debug(f'RECV:: "{data}"')
                 yield data
 
-def send(address):
+def send(address: str):
     """Send data to given addresses via zmq.PUSH socket
+
     Args:
-        address: socket address to *connect*, in format "<protocol>/<address>:<port>", 
-        for example "tcp:/127.0.0.1:9000"
+        address: 
+            socket address to *connect*, in format ``<protocol>/<address>:<port>``, 
+            for example ``tcp:/127.0.0.1:9000``
     """ 
     if isinstance(address, str):
         address=[address]

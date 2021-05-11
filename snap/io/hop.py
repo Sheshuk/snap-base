@@ -1,9 +1,17 @@
+"""
+===================
+Hopskotch interface
+===================
+
+Wrapper around `hop-client <https://github.com/scimma/hop-client>`_ module
+"""
+
 import hop
 import asyncio 
 from functools import partial
 from concurrent.futures import ThreadPoolExecutor
-import logging
 
+import logging
 logger = logging.getLogger(__name__)
 
 async def astream(s):
@@ -19,11 +27,14 @@ async def astream(s):
 
 async def recv(address: str, auth: bool=False):
     """ Receive messages from hopskotch (source)
-    Args:
-        address: hopskotch location of the format 'kafka://{host}:{port}/{topic} to subscribe
-        auth: use hopskotch authentication (default: false)
-    Yields:
-        received message
+
+        Args:
+           address:
+                hopskotch location of the format ``kafka://<host>:<port>/<topic>`` to publish
+           auth: 
+                use hopskotch authentication
+        Yields:
+            received message
     """
     stream = hop.Stream(auth=auth, persist=True)
 
@@ -38,9 +49,12 @@ async def recv(address: str, auth: bool=False):
 
 def send(address: str, auth: bool=False):
     """ Send messages to hopskotch (step)
+
         Args:
-           address: hopskotch location of the format 'kafka://{host}:{port}/{topic} to publish
-           auth: use hopskotch authentication (default: false)
+           address:
+                hopskotch location of the format ``kafka://<host>:<port>/<topic>`` to publish
+           auth: 
+                use hopskotch authentication
     """
     stream = hop.Stream(auth=None)
     s = stream.open(address, 'w')
