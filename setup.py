@@ -5,6 +5,11 @@ import setuptools
 with open('README.md') as f:
     readme = f.read()
 
+extras = { 'zmq':['pyzmq>=20'], 
+           'hop':['hop-client==0.2']
+           }
+extras['io'] = extras['zmq']+extras['hop']
+
 setuptools.setup(name='snap-base',
         version=__version__,
         description='SuperNova Async Pipeline: base package',
@@ -16,7 +21,11 @@ setuptools.setup(name='snap-base',
         licence='GNU GPLv3',
         packages=['snap'],
         scripts=['scripts/snap'],
-        install_requires=['pyzmq>=20','pyyaml>=3.5'],
+        install_requires=['pyyaml>=3.5'],
+        extras_require=dict(
+            doc=['sphinx', 'sphinx-rtd-theme']+extras['io'],
+            **extras
+            ),
         python_requires='>=3.7'
         )
 
