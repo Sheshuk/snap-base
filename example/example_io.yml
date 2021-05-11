@@ -1,0 +1,22 @@
+node1:
+  gen:
+    source:
+      example.gen_timestamp: {delay: 1}
+    steps:
+      - example.to_str
+      - example.dump: {prefix: 'send'}
+      - .io.zmq.send: {address: "tcp://0.0.0.0:50000"}
+      - .io.hop.send: {address: "kafka://127.0.0.1/test"}
+
+node2:
+  recv_hop:
+    source:
+      .io.zmq.recv: {address: "tcp://*:50000"}
+    steps:
+      - example.dump: {prefix: 'zmq'}
+
+  recv_zmq:
+    source:
+      .io.hop.recv: {address: "kafka://127.0.0.1/test"}
+    steps:
+      - example.dump: {prefix: 'hop'}
