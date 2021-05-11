@@ -30,7 +30,7 @@ async def recv(address: str, auth: bool=False):
 
         Args:
            address:
-                hopskotch location of the format ``kafka://<host>:<port>/<topic>`` to publish
+                hopskotch location of the format ``kafka://<host>:<port>/<topic>`` to subscribe
            auth: 
                 use hopskotch authentication
         Yields:

@@ -8,12 +8,25 @@ It was designed for the supernova neutrino signal detection.
 * Computationally heavy/blocking code is run in parallel threads/processes.
 * Pipeline is configured in a `yaml` file, where the steps are assembled and parameters are set.
 * Branching support: data can be fed to parallel chains for various processing.
-* ZeroMQ interface to connect running nodes with each other.
+* IO interfaces to connect running nodes with each other: 
+  * ZeroMQ
+  * Hopskotch
 
 ## Installation
 
 ```shell
 pip install snap-base
+```
+This will install only the core functionality.
+
+To install also the i/o interfaces use
+
+```shell
+pip install "snap-base[zmq,hop]"
+```
+or
+```shell
+pip install "snap-base[io]"
 ```
 
 ## Defining the pipeline
@@ -21,8 +34,6 @@ The pipeline definition consist of
 
 1. A python module (or modules) where all the processing steps should be defined
 2. `yaml` configuration file, defining how the data should flow through these steps.
-
-For more details see: [Pipeline_elements](Pipeline_elements.md)
 
 While this package defines some basic functions, like sending and receiving data via ZMQ or running analysis step in parallel processes,
 all other needed functions will need to be defined by user in the python package.
