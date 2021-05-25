@@ -6,7 +6,7 @@ with open('README.md') as f:
     readme = f.read()
 
 extras = { 'zmq':['pyzmq>=20'], 
-           'hop':['hop-client==0.2']
+           'hop':['hop-client==0.4']
            }
 extras['io'] = extras['zmq']+extras['hop']
 
