@@ -25,7 +25,7 @@ async def astream(s):
             msg = await loop.run_in_executor(pool, get_message)
             yield msg
 
-async def recv(address: str, auth: bool=False):
+async def recv(address: str, auth: bool=True):
     """ Receive messages from hopskotch (source)
 
         Args:
@@ -47,7 +47,7 @@ async def recv(address: str, auth: bool=False):
         except ValueError as e:
             logger.error(e)
 
-def send(address: str, auth: bool=False):
+def send(address: str, auth: bool=True):
     """ Send messages to hopskotch (step)
 
         Args:
@@ -56,7 +56,7 @@ def send(address: str, auth: bool=False):
            auth: 
                 use hopskotch authentication
     """
-    stream = hop.Stream(auth=None)
+    stream = hop.Stream(auth=auth)
     s = stream.open(address, 'w')
     
     def _f(data):
