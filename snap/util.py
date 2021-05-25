@@ -5,8 +5,9 @@ from tqdm.asyncio import tqdm
 
 def ticker(**kwargs):
     """ 
+    A monitoring :term:`step`.
     Display a `tqdm` progress bar, which is incremented with every data portion.
-    For full arguments list see `documentation <https://github.com/tqdm/tqdm#documentation>`        
+    For full arguments list see `tqdm documentation <https://github.com/tqdm/tqdm#documentation>`_   
     
     Keyword Args:
         desc (str)
@@ -14,12 +15,10 @@ def ticker(**kwargs):
         total (int or float, optional)
             The number of expected iterations
             (displays progressbar until this number is reached, becomes a ticker afterwards)
-    Input:
-        data
-            A data portion (anything)
-    Output:
-        data
-            The same value unchanged
+    :Input:
+        data (anything)
+    :Output:
+        data unchanged
  
     """
     async def _f(source):
@@ -30,8 +29,9 @@ def ticker(**kwargs):
 
 def meter(**kwargs):
     """ 
+    A monitoring :term:`step`.
     Display a `tqdm` progress bar, where the progress is set by the incoming data (must be float)
-    For full arguments list see `documentation <https://github.com/tqdm/tqdm#documentation>`        
+    For full arguments list see `tqdm documentation <https://github.com/tqdm/tqdm#documentation>`_
     
     Keyword Args:
         desc (str)
@@ -39,12 +39,10 @@ def meter(**kwargs):
         total (int or float, optional)
             Maximal value
 
-    Input:
-        data (float)
-            A value to be displayed
-    Output:
-        data (float)
-            The same value unchanged
+    :Input:
+        data (float): A value to be displayed
+    :Output:
+        data unchanged
     """
  
     t = tqdm(**kwargs)
@@ -57,17 +55,20 @@ def meter(**kwargs):
 import asyncio
 def run_shell(cmd):
     """
+    A processing :term:`step`.
     Run shell command every time the `data` arrives.
 
     Args:
         cmd (str):
             A command to run. 
-            If cmd is a template, like "echo {foo} {bar}", data should contain keys "foo" and "bar"
-    Input:
-        data(dict)
-    Output:
-        str
-            stdout of the executed command
+            If cmd is a template, like ``echo {foo} {bar}``, data should contain keys "foo" and "bar"
+
+    :Input:
+        data(dict) will be used to define the command:
+        :code:`run_cmd = cmd.format(**data)`
+
+    :Output: 
+        (str) stdout of the executed command
     """
     async def _run(data):
         print(f"Run!")
@@ -87,15 +88,16 @@ def run_shell(cmd):
     return _run
 
 def dump_to_file(fname):
-    """ Save the incoming data to a text file
+    """ 
+    A processing :term:`step`.
+    Save the incoming data to a text file
 
     Args:
         fname(str)
             A file name. File is opened for writing.
-    Input:
-        data
-            To be written as string representation :func:`repr(data)`
-    Output:
+    :Input:
+        data to be written as string representation :code:`repr(data)`
+    :Output:
         data unchanged
     """
     with open(fname,'w') as f:
@@ -107,14 +109,16 @@ def dump_to_file(fname):
     return _f
 
 def dump(prefix="DUMP"):
-    """ Print the incoming data to stdout with given prefix
+    """ 
+    A processing :term:`step`.
+    Print the incoming data to stdout with given prefix
+
     Args:
         prefix(str)
             String prefix before each output
-    Input:
-        data
-            To be written as string representation :func:`repr(data)`
-    Output:
+    :Input:
+        data: to be written as string representation :code:`repr(data)`
+    :Output:
         data unchanged
     """
     def _f(d):
