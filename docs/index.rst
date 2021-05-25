@@ -17,11 +17,10 @@ Features:
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
+   
+   glossary
    pipeline
-   io
-
-
+   submodules
 
 Indices and tables
 ==================
