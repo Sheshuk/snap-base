@@ -49,13 +49,6 @@ def dump_with_timestamp(fmt="%X"):
         return d
     return _f
 
-#function with parameters
-def dump(prefix="DUMP"):
-    def _f(d):
-        print(f'{prefix} {d}')
-        return d
-    return _f
-
 #function without parameters
 def count(d):
     return len(d)
