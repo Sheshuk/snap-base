@@ -13,7 +13,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 async def recv(address: str):
-    """Receive data from zmq.PULL socket on given address
+    """
+    Data :term:`source`.
+    Receive data from zmq.PULL socket on given address.
+    
 
     Args:
         address: 
@@ -33,7 +36,9 @@ async def recv(address: str):
                 yield data
 
 def send(address: str):
-    """Send data to given addresses via zmq.PUSH socket
+    """
+    Processing  :term:`step`.
+    Send data to given addresses via zmq.PUSH socket
 
     Args:
         address: 

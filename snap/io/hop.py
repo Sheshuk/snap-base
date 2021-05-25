@@ -26,15 +26,17 @@ async def astream(s):
             yield msg
 
 async def recv(address: str, auth: bool=True):
-    """ Receive messages from hopskotch (source)
+    """ 
+    Data :term:`source`.
+    Receive messages from hopskotch.
 
-        Args:
-           address:
-                hopskotch location of the format ``kafka://<host>:<port>/<topic>`` to subscribe
-           auth: 
-                use hopskotch authentication
-        Yields:
-            received message
+    Args:
+       address:
+            hopskotch location of the format ``kafka://<host>:<port>/<topic>`` to subscribe
+       auth: 
+            use hopskotch authentication
+    Yields:
+        received message
     """
     stream = hop.Stream(auth=auth, persist=True)
 
@@ -48,13 +50,15 @@ async def recv(address: str, auth: bool=True):
             logger.error(e)
 
 def send(address: str, auth: bool=True):
-    """ Send messages to hopskotch (step)
+    """ 
+    Processing :term:`step`.
+    Send messages to hopskotch.
 
-        Args:
-           address:
-                hopskotch location of the format ``kafka://<host>:<port>/<topic>`` to publish
-           auth: 
-                use hopskotch authentication
+    Args:
+       address
+            hopskotch location of the format ``kafka://<host>:<port>/<topic>`` to publish
+       auth: 
+            use hopskotch authentication
     """
     stream = hop.Stream(auth=auth)
     s = stream.open(address, 'w')
