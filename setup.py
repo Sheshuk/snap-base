@@ -19,9 +19,12 @@ setuptools.setup(name='snap-base',
         author='Andrey Sheshukov',
         author_email='ash@jinr.ru',
         licence='GNU GPLv3',
-        packages=['snap'],
+        packages=['snap', 'snap.io'],
         scripts=['scripts/snap'],
-        install_requires=['pyyaml>=3.5'],
+        install_requires=[
+            'pyyaml>=3.5', 
+            'tqdm>=4.53',
+            ],
         extras_require=dict(
             doc=['sphinx', 'sphinx-rtd-theme']+extras['io'],
             **extras
