@@ -6,17 +6,17 @@ node1:
       - example.to_str
       - example.dump: {prefix: 'send'}
       - .io.zmq.send: {address: "tcp://0.0.0.0:50000"}
-      - .io.hop.send: {address: "kafka://127.0.0.1/test"}
+      - .io.hop.send: {address: "kafka://127.0.0.1/test", auth: False}
 
 node2:
-  recv_hop:
+  recv_zmq:
     source:
       .io.zmq.recv: {address: "tcp://*:50000"}
     steps:
       - example.dump: {prefix: 'zmq'}
 
-  recv_zmq:
+  recv_hop:
     source:
-      .io.hop.recv: {address: "kafka://127.0.0.1/test"}
+      .io.hop.recv: {address: "kafka://127.0.0.1/test", auth: False}
     steps:
       - example.dump: {prefix: 'hop'}
