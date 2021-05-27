@@ -1,3 +1,7 @@
+"""
+Data sources
+============
+"""
 import sys, asyncio
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np

@@ -1,5 +1,5 @@
 """
-Modules for real-time display
+Steps for real-time display
 =============================
 
 Wrappers of the `tqdm <https://github.com/tqdm/tqdm>`_ progress-bar to show the iterations count or data values
