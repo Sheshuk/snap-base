@@ -3,4 +3,4 @@ try:
     from .parallel import Parallel
     from . import config
 finally:
-    __version__ = '1.2.0'
+    __version__ = '1.3.0'
