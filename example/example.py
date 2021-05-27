@@ -1,7 +1,7 @@
-import numpy as np
 import asyncio
 import datetime
 import time
+import numpy as np
 
 #generator example
 async def random_walk(start=0, sigma=1, delay=1):
