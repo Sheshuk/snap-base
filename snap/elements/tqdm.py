@@ -48,7 +48,7 @@ def meter(**kwargs):
     :Output:
         data unchanged
     """
-    kwargs.setdefault('bar_format','{desc}|{n: 6.4f} [{bar}]')
+    kwargs.setdefault('bar_format','{desc}[{n: 6.4f}]|{bar}|{r_bar}')
     t = tqdm(**kwargs)
     def _f(d):
         t.n = d
