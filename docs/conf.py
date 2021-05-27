@@ -22,7 +22,8 @@ copyright = '2021, Andrey Sheshukov'
 author = 'Andrey Sheshukov'
 
 # The full version, including alpha/beta/rc tags
-release = '1.1.0'
+from snap import __version__
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
