@@ -59,6 +59,11 @@ def send(address: str, auth: bool=True):
             hopskotch location of the format ``kafka://<host>:<port>/<topic>`` to publish
        auth: 
             use hopskotch authentication
+    :Input:
+        data(any JSON-serializable object) to be sent
+    :Output:
+        data unchanged
+
     """
     stream = hop.Stream(auth=auth)
     s = stream.open(address, 'w')

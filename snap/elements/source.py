@@ -28,9 +28,8 @@ async def read_txt(fname:str, size:int, columns:dict, delay:float=0):
         delay
             Minimal delay between reading each data chunk, in seconds.
 
-    Yields:
-        dict
-            with data organized by the columns with column names as key
+    Yields: 
+        dict with data organized by the columns with column names as key
     """
     fo = sys.stdin if fname=='stdin' else open(fname)
     with fo as f:
