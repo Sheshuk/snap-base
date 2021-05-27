@@ -17,7 +17,7 @@ def read_yaml(fname):
 
 
 
-root_package = 'snap'
+root_package = 'snap.elements'
 
 class ConfigError(Exception):
     def __init__(self,msg, where):

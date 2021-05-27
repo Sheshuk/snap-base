@@ -1,0 +1,33 @@
+roundtrip:
+  publish:
+      source:
+          example.gen_timestamp: {delay: 0.5}
+      steps:
+        - example.timestamp_to_json
+        - .tqdm.counter: {desc: "send"}
+        - .io.hop.send: {address: "kafka://kafka.scimma.org/snews.testing", auth: True}
+
+  subscribe:
+      source:
+          .io.hop.recv: {address: "kafka://kafka.scimma.org/snews.testing", auth: True}
+      steps:
+        - .tqdm.counter: {desc: "recv"}
+        - example.timestamp_from_json
+        - example.measure_latency
+        - .tqdm.meter: {desc: 'latency, s', total: 2.0}
+
+heartbeat:
+  receive:
+      source:
+          .io.hop.recv: {address: "kafka://kafka.scimma.org/sys.heartbeat", auth: True}
+      steps:
+        - .tqdm.counter: {}
+        - .output.dump: {prefix: 'sys.heartbeat'}
+      to: process
+  process:
+      steps: 
+        - example.timestamp_from_json
+        - example.measure_latency
+        - .output.dump: {prefix: 'latency:'}
+        - .tqdm.meter: {desc: 'latency', total: 1.0}
+ 

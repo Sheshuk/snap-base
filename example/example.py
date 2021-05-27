@@ -1,21 +1,17 @@
-import numpy as np
 import asyncio
-import datetime
+from datetime import datetime
 import time
+import numpy as np
+
+from snap import timing
 
 #generator example
-async def random_walk(start=0, sigma=1, delay=1):
-    """generate numbers with gaussian random walk
-    params:
-        * start: start value
-        * sigma: sigma of the random step
-        * delay: time between numbers in seconds
+async def random(mean=0, sigma=1, delay=1):
+    """generate numbers with gaussian distriution
     """
-    x = start
     while True:
-        x+=np.random.normal(loc=0, scale=sigma)
         await asyncio.sleep(delay)
-        yield x
+        yield np.random.normal(loc=mean, scale=sigma)
 
 # filter example: threshold
 def threshold(val=0):
@@ -44,7 +40,7 @@ class Buffer:
 #function with parameters
 def dump_with_timestamp(fmt="%X"):
     def _f(d):
-        t = datetime.datetime.now()
+        t = datetime.now()
         print(f'{t.strftime(fmt)}: {d}')
         return d
     return _f
@@ -63,11 +59,18 @@ def blocking(delay=10):
 async def gen_timestamp(delay=1):
     while True:
         await asyncio.sleep(delay)
-        yield datetime.datetime.now()
+        yield datetime.now()
+
+def timestamp_to_json(ts):
+    return {'timestamp':int(datetime.timestamp(ts)*1e6)}
+
+def timestamp_from_json(msg):
+    ts = msg['timestamp']/1e6 #convert to seconds
+    return datetime.fromtimestamp(ts)
 
 def to_str(data):
     return str(data)
 
 def measure_latency(ts):
-    dt = datetime.datetime.now()-ts
-    return dt
+    dt = datetime.now()-ts
+    return dt.total_seconds()

@@ -44,6 +44,10 @@ def send(address: str):
         address: 
             socket address to *connect*, in format ``<protocol>/<address>:<port>``, 
             for example ``tcp:/127.0.0.1:9000``
+    :Input:
+        data(any pickle-serializable object) to be sent
+    :Output:
+        data unchanged
     """ 
     if isinstance(address, str):
         address=[address]
