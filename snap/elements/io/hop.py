@@ -63,7 +63,6 @@ def send(address: str, auth: bool=True):
         data(any JSON-serializable object) to be sent
     :Output:
         data unchanged
-
     """
     stream = hop.Stream(auth=auth)
     s = stream.open(address, 'w')

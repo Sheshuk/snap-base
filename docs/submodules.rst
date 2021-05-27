@@ -1,5 +1,5 @@
-Pipeline elements
-=================
+Reference: pipeline elements
+============================
 
 
 .. automodule:: snap.elements
@@ -27,3 +27,4 @@ Input/output interfaces
 
 .. automodule:: snap.elements.io.hop
    :members: send, recv
+
