@@ -5,6 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from snap.config import read_yaml, build_node, ConfigError
+from snap.status import status_server
 
 import asyncio
 import argparse
@@ -22,6 +23,8 @@ async def main():
             help='Nodes configuration file')
     parser.add_argument('-n','--node',metavar='NAME',
             help='Node name (default="node")',default='node')
+    parser.add_argument('-S','--status',metavar='ADDRESS',
+            help='ZMQ socket address, where the reply server for status checks will bind. Default: no status server.',default=None)
     parser.add_argument('-v','--verbose', metavar='LOG_LEVEL',
             help='Override the log level', choices=['CRITICAL','ERROR','WARNING','INFO','DEBUG'])
 
@@ -37,18 +40,20 @@ async def main():
         f'\n Run `snap {args.config} -n <node_name>`'
         )
         return 1
- 
     try:
-        node = build_node(cfg[args.node])
-        logger.debug(f"Constructed node: {node}")
+        tasks = build_node(cfg[args.node])
+        logger.debug(f"Constructed node: {tasks}")
     except ConfigError as e:
         while e:
             logger.error(e)
             e = e.__cause__
         return 1
+    
+    if(args.status):
+        tasks['status_server']=status_server(address=args.status, status=b'OK')
 
     try:
-        await asyncio.gather(*node)
+        await asyncio.gather(*tasks.values())
     except asyncio.CancelledError:
            logger.info("Tasks cancelled")
 
