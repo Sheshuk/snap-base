@@ -1,10 +1,11 @@
 node1:
   gen:
     source:
-      example.gen_timestamp: {delay: 1}
+      example.gen_timestamp: {}
     steps:
+      - .timing.every: {seconds: 1}
       - example.to_str
-      - example.dump: {prefix: 'send'}
+      - .output.dump: {prefix: 'send'}
       - .io.zmq.send: {address: "tcp://0.0.0.0:50000"}
       - .io.hop.send: {address: "kafka://127.0.0.1/test", auth: False}
 
@@ -13,10 +14,10 @@ node2:
     source:
       .io.zmq.recv: {address: "tcp://*:50000"}
     steps:
-      - example.dump: {prefix: 'zmq'}
+      - .output.dump: {prefix: 'zmq'}
 
   recv_hop:
     source:
       .io.hop.recv: {address: "kafka://127.0.0.1/test", auth: False}
     steps:
-      - example.dump: {prefix: 'hop'}
+      - .output.dump: {prefix: 'hop'}
