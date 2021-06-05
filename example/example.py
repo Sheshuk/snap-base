@@ -6,11 +6,10 @@ import numpy as np
 from snap import timing
 
 #generator example
-async def random(mean=0, sigma=1, delay=1):
+async def random(mean=0, sigma=1):
     """generate numbers with gaussian distriution
     """
     while True:
-        await asyncio.sleep(delay)
         yield np.random.normal(loc=mean, scale=sigma)
 
 # filter example: threshold
@@ -24,26 +23,16 @@ def threshold(val=0):
 
 #buffer object example
 class Buffer:
-    def __init__(self, buffer_time=10):
+    def __init__(self):
         """object to accumulate the data in the time bins"""
         self.data = []
-        self.buffer_time = buffer_time
     async def put(self, data):
         self.data+=[data]
 
     async def get(self):
-        await asyncio.sleep(self.buffer_time)
         res = self.data
         self.data = []
         return res
-
-#function with parameters
-def dump_with_timestamp(fmt="%X"):
-    def _f(d):
-        t = datetime.now()
-        print(f'{t.strftime(fmt)}: {d}')
-        return d
-    return _f
 
 #function without parameters
 def count(d):
@@ -56,9 +45,8 @@ def blocking(delay=10):
         return d
     return _f
 
-async def gen_timestamp(delay=1):
+async def gen_timestamp():
     while True:
-        await asyncio.sleep(delay)
         yield datetime.now()
 
 def timestamp_to_json(ts):

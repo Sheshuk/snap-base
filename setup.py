@@ -5,10 +5,8 @@ import setuptools
 with open('README.md') as f:
     readme = f.read()
 
-extras = { 'zmq':['pyzmq>=20'], 
-           'hop':['hop-client==0.4']
-           }
-extras['io'] = extras['zmq']+extras['hop']
+extras = { 'hop':['hop-client==0.4'] }
+extras['io'] = extras['hop']
 
 setuptools.setup(name='snap-base',
         version=__version__,
@@ -24,10 +22,11 @@ setuptools.setup(name='snap-base',
         install_requires=[
             'pyyaml>=3.5', 
             'tqdm>=4.53',
+            'pyzmq>=20',
             'numpy',
             ],
         extras_require=dict(
-            doc=['sphinx', 'sphinx-rtd-theme']+extras['io'],
+            doc=['sphinx', 'sphinx-rtd-theme', 'sphinx-argparse']+extras['io'],
             **extras
             ),
         python_requires='>=3.7'

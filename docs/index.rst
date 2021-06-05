@@ -18,6 +18,7 @@ Features:
    :maxdepth: 2
    :caption: Contents:
    
+   running
    glossary
    pipeline
    submodules

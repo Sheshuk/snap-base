@@ -5,13 +5,71 @@ The goal of the pipeline is to process the input data in several consequtive ste
 In most cases, when handling the data in real time, some steps require idle periods of waiting for the data to come from the upstream sourses. 
 SNAP uses python `asyncio <https://docs.python.org/library/asyncio.html>`_ approach to make these waits asynchronous, so that one part of the pipeline can continue processing, while the other is waiting.
 
-
-Each pipeline application is defined as :ref:`node`, which consists of :ref:`chain`, which is composed of :ref:`source` and :ref:`step` processing the :ref:`data-portion`.
+Each pipeline application is defined as :ref:`node`, which consists of one or several :ref:`chains<chain>`, which is composed of :ref:`source` and one or several :ref:`steps<step>` processing the :ref:`data-portion`.
 
 This section defines the basic terms, used in SNAP, and how to use them:
 
-.. toctree::
- 
+
+.. _node:
+
+Node
+^^^^
+
+A single python process, which consists of one or more :ref:`chain` and runs all of them simulatneously (asynchronously).
+
+It is defined in the configuration file as a mapping of node name and it's chains:
+
+.. code-block:: yaml
+
+    <node name>:
+        <chain name1>:
+            #chain1 configuration here
+        <chain name2>:
+            #chain2 configuration here
+
+where ``<node name>`` is a name of this node, describing it's purpose. 
+This name will be used, when running the snap program with ``snap --node <node name>`` option)
+
+
+:Note: Node names within one file must be different.
+ Chain names within the node must be different.
+
+.. _chain:
+
+Chain
+^^^^^^^^^^^^^^^^
+
+Chain defines a single pipeline, getting the data from its :ref:`source` and processing it in the :ref:`step` one by one, and optionally forwarding it to one or several other chains (targets).
+
+Chain is defined in the configuration file and consist of:
+
+:<chain name>: any name describing the chain purpose
+
+:source:
+    Section with a :ref:`source` element.
+    If missing, the chain is expected to receive data from another chain (if it's listed in another chain's ``to`` section).
+
+:steps:
+    Section with a list of one or more :ref:`step` elements.
+    If missing, then the chain will just draw data from source and pass to the targets.
+
+:to:
+    Section with one or more other :ref:`chain` names within the same node, where the output of the last step should be forwarded. 
+    If missing, then the data from last step is not forwarded.
+
+
+.. code-block:: yaml
+
+    <chain name>:
+        source:
+            <source element>
+        steps:
+            - <step element 1>
+            - <step element 2>
+        to: [<chain_name1>, <chain_name2>]
+
+
+
 
 .. _data-portion :
 
@@ -27,7 +85,7 @@ Source
 ^^^^^^^
 An asynchronous (or synchronous) generator producing :ref:`data-portion`
 
-Simple example of a :ref:`source` from [example.py](example/example.py):
+Simple example of a :ref:`source`
 
 .. code-block:: python
 
@@ -65,6 +123,7 @@ Can be just a function on the data, like this example
         return d
 
 and referenced in the configuration file as 
+
 .. code-block:: yaml
 
     steps:
@@ -89,7 +148,7 @@ and described in the configuration with parameters:
     steps:
         - foo.bar.dump: {prefix: "Here's what I got:"}
 
-> :warning: Arguments are passed to function/functor constructor as **keyword** args
+:Note: Arguments are passed to function/functor constructor as *keyword* args
 
 .. _filter:
 
@@ -142,7 +201,7 @@ and described in the configuration as:
 Buffer
 """"""""""""""
 
-"Buffer" is a :ref:`step` which processes the data, but the input loop from the output loop. 
+"Buffer" is a :ref:`step` which processes the data, but the input event loop is decoupled from the output loop. 
 An example could be buffering data, and producing the accumulated data every 10 seconds.
 
 A buffer object is defined as a python class, implementing `async def put` and `async def get` methods.
@@ -166,56 +225,13 @@ Example:
             return res
 
 
-And in configuration file is defined as
+And in configuration file is defined as (if ``Buffer`` is inside ``foo.bar`` python module):
 
 .. code-block:: yaml
 
     steps:
         - foo.bar.Buffer: {buffer_time: 10} 
 
-> :information_source: A buffer can also be used as a :ref:`source` of a chain. In that case, if the data flows from another chain, it will be `put` in the buffer.
-
-.. _chain:
-
-Chain
-^^^^^^^^^^^^^^^^
-
-Chain defines a single pipeline, getting the data from its :ref:`source` and processing it in the :ref:`step` one by one, and optionally forwarding it to one or several other chains (targets).
-
-Chain is defined in the configuration file and consist of a *NAME* as a dict key, a :ref:`source` in `source` section, :ref:`step` in `steps` section and  [*TARGETS*] in `to` section:
-
-.. code-block:: yaml
-
-    NAME:
-        source:
-            SOURCE
-        steps:
-            - STEP1
-            - STEP2
-        to: [TARGET1, TARGET2]
-        #`to: TARGET` in case of just one target
+:Note: A buffer can also be used as a :ref:`source` of a chain. In that case, if the data flows from another chain, it will be `put` in the buffer.
 
 
-If `source` section is missing, the source is an asyncis chain can only receive data from another chain (if it's *NAME* is listed in another chain's *TARGETS*).
-
-If `steps` are missing, then the chain will just draw data from source and pass to the targets.
-
-If `to` is missing, then the data from last step is not forwarded.
-
-.. _node:
-
-Node
-^^^^
-
-A single python process, which consists of one or more :ref:`chain` and runs all of them simulatneously (asynchronously).
-
-It is defined in the configuration file as a mapping of node name and it's chains:
-
-.. code-block:: yaml
-
-    NODENAME:
-        chain1
-        chain2
-
-
-Chain names within the node must be different.
