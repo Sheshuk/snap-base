@@ -1,0 +1,9 @@
+node:
+    mon:
+      source: 
+        snap.status.status_req: {address: 'tcp://0.0.0.0:50001', timeout: 0.2}
+      steps:
+        - .output.dump: {prefix: "status:", rewrite: True}
+        - .timing.every: {delay: 0.1}
+          #- .tqdm.counter: {}
+
