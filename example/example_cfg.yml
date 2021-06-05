@@ -4,14 +4,16 @@ node_branching:
         example.random: {}
     steps:
       - .timing.every: {seconds: 1}
-      - example.dump_with_timestamp: {fmt: '%X:  generated '}
+      - .output.dump: {prefix: 'generated:'}
     to: [process_positive, process_high]
 
   process_positive:
     steps:
       - example.threshold: {val: 0}
+      - .output.dump: {prefix: 'pos!'}
       - example.Buffer: {}
       - .timing.every: {seconds: 5}
+      - .output.dump: {prefix: 'Buffered positives:'}
       - example.count
       - .output.dump: {prefix: 'Positive values: '}
 

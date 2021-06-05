@@ -27,8 +27,8 @@ def every(seconds):
     async def _f(source=_dummy_source):
         t0 = now()
         async for data in source:
-            t0+=delay
-            await wait_until(t0)
             yield data
+            t0+=seconds
+            await wait_until(t0)
     return _f
     

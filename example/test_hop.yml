@@ -1,8 +1,9 @@
 roundtrip:
   publish:
       source:
-          example.gen_timestamp: {delay: 0.5}
+          example.gen_timestamp: {}
       steps:
+        - .timing.every: {seconds: 0.5}
         - example.timestamp_to_json
         - .tqdm.counter: {desc: "send"}
         - .io.hop.send: {address: "kafka://kafka.scimma.org/snews.testing", auth: True}

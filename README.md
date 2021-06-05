@@ -24,10 +24,6 @@ This will install only the core functionality.
 To install also the i/o interfaces use
 
 ```shell
-pip install "snap-base[zmq,hop]"
-```
-or
-```shell
 pip install "snap-base[io]"
 ```
 
