@@ -33,5 +33,5 @@ async def status_req(address, timeout=1):
                         logger.debug(f'reply="{rep}"')
                         yield rep, now()-t0
             except asyncio.TimeoutError:
-                yield b"TIMEOUT",now()-t0
+                yield b'TIMEOUT',now()-t0
                 
