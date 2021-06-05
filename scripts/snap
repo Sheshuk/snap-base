@@ -5,6 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from snap.config import read_yaml, build_node, ConfigError
+from snap.status import status_server
 
 import asyncio
 import argparse
@@ -16,15 +17,17 @@ import signal
 current_dir = os.path.abspath(os.getcwd())
 sys.path.append(current_dir)
 
-async def main():
-    parser = argparse.ArgumentParser(description='SuperNova Async Pipeline: run a given NODE from config')
-    parser.add_argument('config',
-            help='Nodes configuration file')
-    parser.add_argument('-n','--node',metavar='NAME',
-            help='Node name (default="node")',default='node')
-    parser.add_argument('-v','--verbose', metavar='LOG_LEVEL',
-            help='Override the log level', choices=['CRITICAL','ERROR','WARNING','INFO','DEBUG'])
+parser= argparse.ArgumentParser(description='SuperNova Async Pipeline: run a given NODE from config')
+parser.add_argument('config',
+        help='Nodes configuration file in yaml format')
+parser.add_argument('-n','--node',metavar='NAME',default='node',
+        help='Node name (default="node")')
+parser.add_argument('-S','--status',metavar='ADDRESS',default=None,
+        help='ZMQ socket address, where the reply server for status checks will bind. Default: no status server.')
+parser.add_argument('-v','--verbose', metavar='LOG_LEVEL', choices=['CRITICAL','ERROR','WARNING','INFO','DEBUG'],
+        help='Override the log level')
 
+async def main():
     args = parser.parse_args()
     if args.verbose:
         logging.basicConfig(level=args.verbose)
@@ -32,23 +35,25 @@ async def main():
     cfg = read_yaml(args.config)
     if args.node not in cfg:
         all_nodes = list(cfg.keys())
-        logger.error(f'Could not find node "{args.node}" in config "{args.config}".'+ \
+        logger.error(f'Could not find node="{args.node}" in config "{args.config}".'+ \
         f'\n Available nodes are: {all_nodes}'+\
         f'\n Run `snap {args.config} -n <node_name>`'
         )
         return 1
- 
     try:
-        node = build_node(cfg[args.node])
-        logger.debug(f"Constructed node: {node}")
+        tasks = build_node(cfg[args.node])
+        logger.debug(f"Constructed node: {tasks}")
     except ConfigError as e:
         while e:
             logger.error(e)
             e = e.__cause__
         return 1
+    
+    if(args.status):
+        tasks['status_server']=status_server(address=args.status, status=b'OK')
 
     try:
-        await asyncio.gather(*node)
+        await asyncio.gather(*tasks.values())
     except asyncio.CancelledError:
            logger.info("Tasks cancelled")
 
@@ -56,8 +61,9 @@ def shutdown(signum, frame):
     for t in asyncio.all_tasks():
         t.cancel()
     
-signal.signal(signal.SIGTERM,shutdown)
-signal.signal(signal.SIGINT,shutdown)
+if __name__=="__main__":
+    signal.signal(signal.SIGTERM,shutdown)
+    signal.signal(signal.SIGINT,shutdown)
 
-asyncio.run(main())
+    asyncio.run(main())
 

@@ -22,7 +22,8 @@ copyright = '2021, Andrey Sheshukov'
 author = 'Andrey Sheshukov'
 
 # The full version, including alpha/beta/rc tags
-release = '1.1.0'
+from snap import __version__
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -33,7 +34,8 @@ release = '1.1.0'
 extensions = ['sphinx.ext.autodoc',
               'sphinx_rtd_theme',
               'sphinx.ext.napoleon',
-              'sphinx.ext.doctest'
+              'sphinx.ext.doctest',
+              'sphinxarg.ext'
               ]
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

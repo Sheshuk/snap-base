@@ -131,5 +131,5 @@ def build_node(config):
         chain_cfg['to'] = [config[t]['source'] for t in tgts]
 
     #create chains
-    tasks = [build_chain(**chain_cfg, name=name) for name,chain_cfg in config.items()]
+    tasks = {name:build_chain(**chain_cfg, name=name) for name,chain_cfg in config.items()}
     return tasks

@@ -8,6 +8,9 @@ Reference: pipeline elements
 .. automodule:: snap.elements.source
     :members: 
 
+.. automodule:: snap.elements.timing
+    :members: 
+
 .. automodule:: snap.elements.output
     :members: 
 

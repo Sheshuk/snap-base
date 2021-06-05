@@ -10,6 +10,5 @@ Interfaces provide similar functions:
 
 """
 
-from . import hop
-from . import zmq
+from . import hop,zmq
 
