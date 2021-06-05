@@ -24,7 +24,7 @@ def dump_to_file(fname):
         return data
     return _f
 
-def dump(prefix="DUMP"):
+def dump(prefix="DUMP", rewrite=False):
     """ 
     A processing :term:`step`.
     Print the incoming data to stdout with given prefix
@@ -32,13 +32,16 @@ def dump(prefix="DUMP"):
     Args:
         prefix(str)
             String prefix before each output
+        rewrite(bool)
+            If true, will end this line with `\\r`, so it will be overwritten
     :Input:
         data: to be written as string representation :code:`repr(data)`
     :Output:
         data unchanged
     """
+    end = '\r' if rewrite else '\n'
     def _f(d):
-        print(f'{prefix} {d}')
+        print(f'{prefix} {d}', end=end)
         return d
     return _f
 
