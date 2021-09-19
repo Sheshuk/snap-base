@@ -53,12 +53,14 @@ async def main():
         tasks['status_server']=status_server(address=args.status, status=b'OK')
 
     try:
-        await asyncio.gather(*tasks.values())
+        await asyncio.gather(*tasks.values(), return_exceptions=False)
     except asyncio.CancelledError:
            logger.info("Tasks cancelled")
 
 def shutdown(signum, frame):
+    logger.info("Cancelling all tasks!")
     for t in asyncio.all_tasks():
+        logger.info(f'Cancel task{t}')
         t.cancel()
     
 if __name__=="__main__":
