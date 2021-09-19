@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from snap import __version__
 import setuptools 
 
 with open('README.md') as f:
@@ -9,7 +8,6 @@ extras = { 'hop':['hop-client==0.4'] }
 extras['io'] = extras['hop']
 
 setuptools.setup(name='snap-base',
-        version=__version__,
         description='SuperNova Async Pipeline: base package',
         long_description=readme,
         long_description_content_type='text/markdown',
