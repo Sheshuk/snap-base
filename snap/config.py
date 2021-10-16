@@ -2,12 +2,17 @@ from collections import abc
 import logging
 logger = logging.getLogger(__name__)
 
+import os
 import asyncio
 from .chain import chain
 
+def parse_env_vars(s):
+    return os.path.expandvars(s)
+
 def read_yaml(fname):
     import yaml
-    with open(fname) as s:
+    with open(fname) as f:
+        s = parse_env_vars(f.read())
         cfg = yaml.load(s, Loader=yaml.Loader)
     if 'logging' in cfg:
         import logging.config
