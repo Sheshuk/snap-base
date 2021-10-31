@@ -13,6 +13,8 @@ import argparse
 import os, sys
 import signal
 
+from functools import partial
+
 # get current path and add it for the modules import
 current_dir = os.path.abspath(os.getcwd())
 sys.path.append(current_dir)
@@ -27,7 +29,7 @@ parser.add_argument('-S','--status',metavar='ADDRESS',default=None,
 parser.add_argument('-v','--verbose', metavar='LOG_LEVEL', choices=['CRITICAL','ERROR','WARNING','INFO','DEBUG'],
         help='Override the log level')
 
-async def main():
+def config():
     args = parser.parse_args()
     if args.verbose:
         logging.basicConfig(level=args.verbose)
@@ -39,7 +41,7 @@ async def main():
         f'\n Available nodes are: {all_nodes}'+\
         f'\n Run `snap {args.config} -n <node_name>`'
         )
-        return 1
+        exit(1)
     try:
         tasks = build_node(cfg[args.node])
         logger.debug(f"Constructed node: {tasks}")
@@ -47,25 +49,30 @@ async def main():
         while e:
             logger.error(e)
             e = e.__cause__
-        return 1
-    
+        exit(1)
     if(args.status):
         tasks['status_server']=status_server(address=args.status, status=b'OK')
+    return tasks
 
+async def main(tasks):
+    all_tasks = [asyncio.create_task(tasks[n],name=n) for n in tasks]
+    def shutdown():
+        logger.info("Cancelling tasks!")
+        for t in all_tasks:
+            logger.debug(f'Cancel task{t}')
+            t.cancel()
+    loop = asyncio.get_event_loop()
+    loop.add_signal_handler(signal.SIGTERM,shutdown)
+    loop.add_signal_handler(signal.SIGINT,shutdown)
     try:
-        await asyncio.gather(*tasks.values(), return_exceptions=False)
+        await asyncio.gather(*all_tasks, return_exceptions=False)
     except asyncio.CancelledError:
-           logger.info("Tasks cancelled")
+        logger.info("Cancelled")
+    finally:
+        logger.info("Finished")
 
-def shutdown(signum, frame):
-    logger.info("Cancelling all tasks!")
-    for t in asyncio.all_tasks():
-        logger.info(f'Cancel task{t}')
-        t.cancel()
-    
+
 if __name__=="__main__":
-    signal.signal(signal.SIGTERM,shutdown)
-    signal.signal(signal.SIGINT,shutdown)
-
-    asyncio.run(main())
+    tasks = config()
+    asyncio.run(main(tasks))
 
