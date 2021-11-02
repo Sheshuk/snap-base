@@ -54,16 +54,19 @@ def config():
         tasks['status_server']=status_server(address=args.status, status=b'OK')
     return tasks
 
-async def main(tasks):
+async def main():
+    tasks = config()
     all_tasks = [asyncio.create_task(tasks[n],name=n) for n in tasks]
     def shutdown():
         logger.info("Cancelling tasks!")
         for t in all_tasks:
             logger.debug(f'Cancel task{t}')
             t.cancel()
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     loop.add_signal_handler(signal.SIGTERM,shutdown)
     loop.add_signal_handler(signal.SIGINT,shutdown)
+
+
     try:
         await asyncio.gather(*all_tasks, return_exceptions=False)
     except asyncio.CancelledError:
@@ -73,6 +76,5 @@ async def main(tasks):
 
 
 if __name__=="__main__":
-    tasks = config()
-    asyncio.run(main(tasks))
+    asyncio.run(main())
 
