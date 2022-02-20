@@ -4,7 +4,7 @@ import setuptools
 with open('README.md') as f:
     readme = f.read()
 
-extras = { 'hop':['hop-client==0.4'] }
+extras = { 'hop':['hop-client==0.5'] }
 extras['io'] = extras['hop']
 
 setuptools.setup(name='snap-base',

@@ -10,5 +10,9 @@ Interfaces provide similar functions:
 
 """
 
-from . import hop,zmq
+from . import zmq
+try:
+    from . import hop
+except ImportError:
+    pass
 

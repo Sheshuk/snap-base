@@ -38,12 +38,11 @@ async def recv(address: str, auth: bool=True):
     Yields:
         received message
     """
-    stream = hop.Stream(auth=auth, persist=True)
 
     while True:
         try:
             logger.info(f'Connecting to {address}...')
-            with stream.open(address, 'r') as s:
+            with hop.Stream(auth=auth).open(address, 'r') as s:
                 async for msg in astream(s):
                     yield msg
         except ValueError as e:
@@ -64,12 +63,12 @@ def send(address: str, auth: bool=True):
     :Output:
         data unchanged
     """
-    stream = hop.Stream(auth=auth)
-    s = stream.open(address, 'w')
+    s = hop.Stream(auth=auth).open(address, 'w')
     
     def _f(data):
         try:
             s.write(data)
+            return data
         except ValueError:
             logger.error(e)
     return _f

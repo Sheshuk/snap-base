@@ -16,6 +16,7 @@ def _wrap_buffer(buf):
         #task to read data, when it's available
         async for d in source:
             await buf.put(d)
+            await asyncio.sleep(0)
             
     async def _f(source=None):
         if source is not None:
@@ -83,6 +84,7 @@ async def chain(*elements, source, targets=[], name='unnamed chain'):
     #run the chain
     try:
         async for d in gen:
+            await asyncio.sleep(0)
             #send data to targets
             for t in targets:
                 await t.put(d)
