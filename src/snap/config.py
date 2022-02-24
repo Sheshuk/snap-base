@@ -105,36 +105,3 @@ def build_chain(steps=[], source=None, to=[], name='unnamed'):
     except Exception as e:
         raise ConfigError(f'Error building chain "{name}"','node') from e
 
-
-def build_node(config):
-    """
-    create node from the configuration
-    
-    parameters:
-    * config - a dict of chain configurations.
-            Each chain configuration is a dict containing:
-                * steps (iterable): list with processing steps (async gen func/buffer object/)
-                * source (async generator, optional): where the data appears
-                * to (list of str, optional): names of chains, where the output is forwarded
-            If a chain has no source, it should be receiving data from another chain (its key should be listed in targets)
-            If a chain has no targets (to), the data is not forwarded (i.e. end of a pipeline)
-
-    returns: 
-        list of asyncio tasks, to be run with `asyncio.gather`.
-    """
-
-    #create input queues for chains without sources
-    for name,chain_cfg in config.items():
-        if chain_cfg.get('source',None) is None:
-            chain_cfg['source'] = asyncio.Queue()
-
-    for name,chain_cfg in config.items():
-        #link targets to input queues
-        tgts = chain_cfg.get('to',[])
-        if isinstance(tgts, str):
-            tgts=[tgts]
-        chain_cfg['to'] = [config[t]['source'] for t in tgts]
-
-    #create chains
-    tasks = {name:build_chain(**chain_cfg, name=name) for name,chain_cfg in config.items()}
-    return tasks
