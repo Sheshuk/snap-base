@@ -62,7 +62,7 @@ class Node:
             t.cancel()
 
     async def run(self):
-        self.running_tasks = [asyncio.create_task(self.tasks[n],name=n) for n in tasks]
+        self.running_tasks = [asyncio.create_task(task,name=name) for name,task in self.tasks.items()]
         loop = asyncio.get_running_loop()
         loop.add_signal_handler(signal.SIGTERM,self.cancel)
         loop.add_signal_handler(signal.SIGINT,self.cancel)
@@ -87,6 +87,7 @@ class Node:
             f'Available nodes are: {all_nodes}'
             logger.error(msg)
             raise KeyError(msg)
+        return node
 
 parser= argparse.ArgumentParser(description='SuperNova Async Pipeline: run a given NODE from config')
 parser.add_argument('config',
