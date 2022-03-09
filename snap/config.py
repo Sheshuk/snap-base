@@ -1,6 +1,7 @@
 from collections import abc
 import logging
 logger = logging.getLogger(__name__)
+import yaml
 
 import os
 import asyncio
@@ -9,17 +10,27 @@ from .chain import chain
 def parse_env_vars(s):
     return os.path.expandvars(s)
 
+def do_include(loader, node):
+    tokens = node.value.split(':')
+    fname=tokens.pop(0)
+    with open(fname) as f:
+        res = yaml.load(f,type(loader))
+    for t in tokens:
+        res=res[t]
+    return res
+
+
+loader = yaml.loader.Loader
+loader.add_constructor(u'!include', do_include)
+
 def read_yaml(fname):
-    import yaml
     with open(fname) as f:
         s = parse_env_vars(f.read())
-        cfg = yaml.load(s, Loader=yaml.Loader)
+        cfg = yaml.load(s, Loader=loader)
     if 'logging' in cfg:
         import logging.config
         logging.config.dictConfig(cfg['logging'])
     return cfg
-
-
 
 
 root_package = 'snap.elements'
