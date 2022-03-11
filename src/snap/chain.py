@@ -82,9 +82,12 @@ class Chain:
 
     def build(self):
         logger.info(f'Building chain: {self.name}')
-        self.gen = self.source
+        self.gen = wrap_source(self.source)
         for e in self.elements:
             self.gen = e(self.gen)
+
+    async def put(self, data):
+        await self.source.put(data)
 
     async def run(self):
         self.build()
@@ -104,21 +107,19 @@ def to_chain(address):
     return _f
 
 
-def make_chains(*elements, source=None,  name="Chain"):
+def make_chains(elements, source=None,  name="Chain"):
 
     source = source or asyncio.Queue()
     chain = Chain(name, source)
     chains = [chain]
     for e in elements:
         if _is_buffer(e):
-            chain = Chain(name=f"{name}.{len(chains):02d}", source=wrap_source(asyncio.Queue()))
+            chain = Chain(name=f"{name}.{len(chains):02d}", source=e)
             chains[-1].elements.append(to_chain(chain.name))
             chains.append(chain)
-
-        chain.elements.append(wrap(e))
+        else:
+            chain.elements.append(wrap(e))
 
     return chains
-
-
 
 
