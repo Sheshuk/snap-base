@@ -2,6 +2,8 @@ import asyncio
 import inspect
 
 import logging
+from collections.abc import AsyncGenerator, Generator, Iterable
+from typing import Any, Optional, NewType
 
 logger = logging.getLogger(__name__)
 
@@ -12,16 +14,7 @@ def _wrap_function(fun):
     return _f
 
 def _wrap_buffer(buf):
-    async def _get_data(source):
-        #task to read data, when it's available
-        async for d in source:
-            await buf.put(d)
-            await asyncio.sleep(0)
-            
     async def _f(source=None):
-        if source is not None:
-            #run reading task
-            task = asyncio.create_task(_get_data(source))
         while True:
             yield await buf.get()
     return _f
@@ -42,8 +35,6 @@ def wrap(a):
         return a
     elif _is_function(a):
         return _wrap_function(a)
-    elif _is_buffer(a):
-        return _wrap_buffer(a)
     else:
         raise TypeError(f'{a} has wrong type {type(a)}')
 
@@ -56,38 +47,78 @@ def wrap_source(a):
     else:
         raise TypeError(f'{a} has wrong type {type(a)}')
 
-        
-async def chain(*elements, source, targets=[], name='unnamed chain'):
-    """Create chain of processing elements
-    
-    parameters:
-        elements(iterable) - each element should be either:
-          - an async gen function, with async generator as input source (parameter)
-          - a buffer object (the one providing 'async get()' and 'async put(data)' methods)
-          - a callable f(data) -> result, operating on each data entry
-          
-        source (async gen) - generator providing the input data
 
-        targets (iterable) - collection of buffer objects, where the results will be pushed.
-                  If empty, the data output after the last element is lost
-        name - the chain name, to provide  meaningful output
+class Element:
+    def __init__(self, f):
+        self.gen = wrap(f)
+
+    def __call__(self, source: AsyncGenerator[Any]) -> AsyncGenerator[Any]:
+        return self.gen(source)
+
+class Chain:
+    all_chains: dict[str,'Chain'] = {} 
+    def __init__(self, name:str, 
+                       source: Element,
+                       *elements: Iterable[Element]
+                       ):
+        """Create chain of processing elements
         
-    returns:
-        awaitable, which can be run as an asynchronous task
-    """
-    gen = wrap_source(source)
-    #chain all the elements
+        parameters:
+            elements(iterable) - each element should be either:
+              - an async gen function, with async generator as input source (parameter)
+              - a buffer object (the one providing 'async get()' and 'async put(data)' methods)
+              - a callable f(data) -> result, operating on each data entry
+              
+            source (async gen) - generator providing the input data
+
+            targets (iterable) - collection of buffer objects, where the results will be pushed.
+                      If empty, the data output after the last element is lost
+            name - the chain name, to provide  meaningful output
+        """
+        self.source = source
+        self.elements = list(elements)
+        self.name = name
+        self.all_chains[name] = self
+
+    def build(self):
+        logger.info(f'Building chain: {self.name}')
+        self.gen = self.source
+        for e in self.elements:
+            self.gen = e(self.gen)
+
+    async def run(self):
+        self.build()
+        logger.info(f'Starting chain: {self.name}')
+        try:
+            async for d in self.gen:
+                await asyncio.sleep(0)
+        except asyncio.CancelledError as e:
+            logger.info(f'Stopping chain: {self.name}')
+
+def to_chain(address):
+    async def _f(source):
+        target = Chain.all_chains[address]
+        async for data in source:
+            await target.put(data)
+            yield data
+    return _f
+
+
+def make_chains(*elements, source=None,  name="Chain"):
+
+    source = source or asyncio.Queue()
+    chain = Chain(name, source)
+    chains = [chain]
     for e in elements:
-        gen = wrap(e)(gen)
+        if _is_buffer(e):
+            chain = Chain(name=f"{name}.{len(chains):02d}", source=wrap_source(asyncio.Queue()))
+            chains[-1].elements.append(to_chain(chain.name))
+            chains.append(chain)
 
-    logger.info(f'Starting chain: {name}')
-    #run the chain
-    try:
-        async for d in gen:
-            await asyncio.sleep(0)
-            #send data to targets
-            for t in targets:
-                await t.put(d)
-    except asyncio.CancelledError as e:
-        logger.info(f'Stopping chain: {name}')
+        chain.elements.append(wrap(e))
+
+    return chains
+
+
+
 
