@@ -61,7 +61,6 @@ class Chain:
 
     def build(self):
         logger.info(f'Building chain: {self.name}')
-        print(f'{self.name} source={self.source}')
         gen = self.source
         for e in self.elements:
             gen = e(gen)
