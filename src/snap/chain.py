@@ -2,7 +2,7 @@ import asyncio
 import inspect
 
 import logging
-from collections.abc import AsyncGenerator, Generator, Iterable
+from collections.abc import AsyncGenerator, Iterable
 from typing import Any, Optional, NewType
 from snap.elements.io import queue as q
 
@@ -34,8 +34,8 @@ def wrap(a):
         raise TypeError(f'{a} has wrong type {type(a)}')
 
 class Chain:
-    def __init__(self, name:str, 
-                       source = None,
+    def __init__(self, name:str,
+                       source: AsyncGenerator|None = None,
                        *elements: Iterable
                        ):
         """Create chain of processing elements
@@ -43,9 +43,7 @@ class Chain:
         parameters:
             elements(iterable) - each element should be either:
               - an async gen function, with async generator as input source (parameter)
-              - a buffer object (the one providing 'async get()' and 'async put(data)' methods)
-              - a callable f(data) -> result, operating on each data entry
-              
+               
             source (async gen) - generator providing the input data
 
             targets (iterable) - collection of buffer objects, where the results will be pushed.
@@ -83,8 +81,8 @@ def make_chains(elements, source=None,  name="Chain"):
     chains = [chain]
     for e in elements:
         if _is_buffer(e):
-            new_name = q.register(e,name=name)
-            chain.elements.append(q.send('queue://'+new_name))
+            new_name = q.register(e,name=f'{name}.{e.__class__.__name__}')
+            chain.elements.append(q.send([new_name]))
             chain = Chain(name=new_name, source=q.recv(new_name))
             chains.append(chain)
         else:
