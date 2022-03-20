@@ -4,6 +4,7 @@ import inspect
 import logging
 from collections.abc import AsyncGenerator, Generator, Iterable
 from typing import Any, Optional, NewType
+from snap.elements.io import queue as q
 
 logger = logging.getLogger(__name__)
 
@@ -11,12 +12,6 @@ def _wrap_function(fun):
     async def _f(source):
         async for d in source:
             yield fun(d)
-    return _f
-
-def _wrap_buffer(buf):
-    async def _f(source=None):
-        while True:
-            yield await buf.get()
     return _f
 
 def _is_function(a):
@@ -38,28 +33,10 @@ def wrap(a):
     else:
         raise TypeError(f'{a} has wrong type {type(a)}')
 
-def wrap_source(a):
-    """create async gen from object a"""
-    if _is_asyncgen(a):
-        return a
-    elif _is_buffer(a):
-        return _wrap_buffer(a)(source=None)
-    else:
-        raise TypeError(f'{a} has wrong type {type(a)}')
-
-
-class Element:
-    def __init__(self, f):
-        self.gen = wrap(f)
-
-    def __call__(self, source: AsyncGenerator[Any]) -> AsyncGenerator[Any]:
-        return self.gen(source)
-
 class Chain:
-    all_chains: dict[str,'Chain'] = {} 
     def __init__(self, name:str, 
-                       source: Element,
-                       *elements: Iterable[Element]
+                       source = None,
+                       *elements: Iterable
                        ):
         """Create chain of processing elements
         
@@ -75,19 +52,20 @@ class Chain:
                       If empty, the data output after the last element is lost
             name - the chain name, to provide  meaningful output
         """
-        self.source = source
+        if source:
+            self.source = source
+        else:
+            self.source = q.recv(name)
         self.elements = list(elements)
         self.name = name
-        self.all_chains[name] = self
 
     def build(self):
         logger.info(f'Building chain: {self.name}')
-        self.gen = wrap_source(self.source)
+        print(f'{self.name} source={self.source}')
+        gen = self.source
         for e in self.elements:
-            self.gen = e(self.gen)
-
-    async def put(self, data):
-        await self.source.put(data)
+            gen = e(gen)
+        self.gen = gen
 
     async def run(self):
         self.build()
@@ -97,29 +75,20 @@ class Chain:
                 await asyncio.sleep(0)
         except asyncio.CancelledError as e:
             logger.info(f'Stopping chain: {self.name}')
-
-def to_chain(address):
-    async def _f(source):
-        target = Chain.all_chains[address]
-        async for data in source:
-            await target.put(data)
-            yield data
-    return _f
-
+        except Exception as e:
+            raise RuntimeError(f'Failed run in chain {self.name}')
 
 def make_chains(elements, source=None,  name="Chain"):
 
-    source = source or asyncio.Queue()
     chain = Chain(name, source)
     chains = [chain]
     for e in elements:
         if _is_buffer(e):
-            chain = Chain(name=f"{name}.{len(chains):02d}", source=e)
-            chains[-1].elements.append(to_chain(chain.name))
+            new_name = q.register(e,name=name)
+            chain.elements.append(q.send('queue://'+new_name))
+            chain = Chain(name=new_name, source=q.recv(new_name))
             chains.append(chain)
         else:
             chain.elements.append(wrap(e))
 
     return chains
-
-
