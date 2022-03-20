@@ -15,7 +15,7 @@ def register(obj:object = asyncio.Queue(), name:str|None=None)->str:
     name0 = name or obj.__class__.__name__
     name = name0
     n = 0
-    while name in _registry:
+    while name in __registry:
         n+=1
         name = f'{name0}.{n:02d}'
     __registry[name] = obj
@@ -27,16 +27,17 @@ def strip_name(name:str):
         name = name.lstrip(_prefix)
     return name
 
-async def recv(address:str):
+def recv(address:str):
     name = strip_name(address)
-    if name not in _registry:
+    if name not in __registry:
         __registry[name] = asyncio.Queue()
 
     q = __registry[name]
-    print(f'Reading queue "{name}"')
-    logging.warning(f'Available keys are: {list(__registry.keys())}')
-    while True:
-        yield await q.get()
+    logging.info(f'Reading queue "{name}"')
+    async def _recv():
+        while True:
+            yield await q.get()
+    return _recv()
 
 def send(address:list[str]):
     async def _f(source):
