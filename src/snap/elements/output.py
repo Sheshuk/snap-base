@@ -20,7 +20,7 @@ def dump_to_file(fname):
         f.write('#------\n')
     def _f(data):
         with open(fname,'a') as f:
-            f.write(repr(data)+'\n')
+            f.write(f'{data}\n')
         return data
     return _f
 
