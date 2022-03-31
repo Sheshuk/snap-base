@@ -1,14 +1,11 @@
-node_branching:
-  generate:
-    source: 
-        example.random: {}
-    steps:
+node_branching: !Node:branching
+  - !chain:generate
+      - !from example.random: {}
       - .timing.every: {seconds: 1}
       - .output.dump: {prefix: 'generated:'}
-    to: [process_positive, process_high]
+      - !to [process_positive, process_high]
 
-  process_positive:
-    steps:
+  - !chain:process_positive
       - example.threshold: {val: 0}
       - .output.dump: {prefix: 'pos!'}
       - example.Buffer: {}
@@ -17,8 +14,7 @@ node_branching:
       - example.count
       - .output.dump: {prefix: 'Positive values: '}
 
-  process_high:
-    steps:
+  - !chain:process_high
       - example.threshold: {val: 3}
       - example.Buffer: {}
       - .timing.every: {seconds: 5}
