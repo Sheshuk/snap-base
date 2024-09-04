@@ -73,7 +73,7 @@ class Node:
         #create the node
         return cls(name=node_cfg.name, chains=chains)
 
-def run():
+def get_parser():
     parser= argparse.ArgumentParser(description='SuperNova Async Pipeline: run a given NODE from config')
     parser.add_argument('config',
             help='Nodes configuration file in yaml format')
@@ -83,9 +83,11 @@ def run():
             help='ZMQ socket address, where the reply server for status checks will bind. Default: no status server.')
     parser.add_argument('-v','--verbose', metavar='LOG_LEVEL', choices=['CRITICAL','ERROR','WARNING','INFO','DEBUG'],
             help='Override the log level')
+    return parser
 
+def run():
 
-    args = parser.parse_args()
+    args = get_parser().parse_args()
     if args.verbose:
         logging.basicConfig(level=args.verbose)
     node = Node.from_yaml(args.config, args.node)
