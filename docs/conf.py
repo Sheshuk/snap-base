@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'SNAP'
-copyright = '2021, Andrey Sheshukov'
+copyright = '2024, Andrey Sheshukov'
 author = 'Andrey Sheshukov'
 
 # The full version, including alpha/beta/rc tags
