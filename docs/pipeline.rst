@@ -28,7 +28,7 @@ It is defined in the configuration file as a mapping of node name and it's chain
             #chain2 configuration here
 
 where ``<node name>`` is a name of this node, describing it's purpose. 
-This name will be used, when running the snap program with ``run_snap --node <node name>`` option)
+This name will be used, when running the snap program with ``snap_run --node <node name>`` option)
 
 
 :Note: Node names within one file must be different.

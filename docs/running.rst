@@ -3,13 +3,13 @@ Running SNAP
 
 SNAP uses a single command line tool to run the node, described in the configuration file.
 
-``run_snap`` command
+``snap_run`` command
 --------------------
 
 .. argparse::
    :filename: ../src/snap/node.py
    :func: get_parser
-   :prog: run_snap
+   :prog: snap_run
 
 Status monitoring
 -----------------
