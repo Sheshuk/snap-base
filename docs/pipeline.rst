@@ -21,14 +21,14 @@ It is defined in the configuration file as a mapping of node name and it's chain
 
 .. code-block:: yaml
 
-    <node name>:
-        <chain name1>:
+    node: !Node [:<node name>]
+        - !chain [:<chain name1>]
             #chain1 configuration here
-        <chain name2>:
+        - !chain [:<chain name2>]
             #chain2 configuration here
 
 where ``<node name>`` is a name of this node, describing it's purpose. 
-This name will be used, when running the snap program with ``snap --node <node name>`` option)
+This name will be used, when running the snap program with ``run_snap --node <node name>`` option)
 
 
 :Note: Node names within one file must be different.
@@ -41,35 +41,23 @@ Chain
 
 Chain defines a single pipeline, getting the data from its :ref:`source` and processing it in the :ref:`step` one by one, and optionally forwarding it to one or several other chains (targets).
 
-Chain is defined in the configuration file and consist of:
-
-:<chain name>: any name describing the chain purpose
-
-:source:
-    Section with a :ref:`source` element.
-    If missing, the chain is expected to receive data from another chain (if it's listed in another chain's ``to`` section).
-
-:steps:
-    Section with a list of one or more :ref:`step` elements.
-    If missing, then the chain will just draw data from source and pass to the targets.
-
-:to:
-    Section with one or more other :ref:`chain` names within the same node, where the output of the last step should be forwarded. 
-    If missing, then the data from last step is not forwarded.
-
+Chain is defined in the configuration file and contains a list of elements:
 
 .. code-block:: yaml
 
-    <chain name>:
-        source:
-            <source element>
-        steps:
-            - <step element 1>
-            - <step element 2>
-        to: [<chain_name1>, <chain_name2>]
+    !chain [:<chain name>]
+        - !from <source element>
+        - <step element 1>
+        - <step element 2>
+        - !to [<chain_name1>, <chain_name2>]
 
+:!from:
+    The element with ``!from`` keyword defines a :ref:`source` element: this is the input of this data.
+    If the chain has no ``!from`` element, the chain is expected to receive data from another chain (if it's listed in another chain's ``to`` section).
 
-
+:!to:
+    Section with one or more other :ref:`chain` names within the same node, where the output of the last step should be forwarded. 
+    If missing, then the data from last step is not forwarded.
 
 .. _data-portion :
 

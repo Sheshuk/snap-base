@@ -1,50 +1,42 @@
-node_branching:
-  generate:
-    source: 
-        example.random: {}
-    steps:
-      - .timing.every: {seconds: 1}
-      - .output.dump: {prefix: 'generated:'}
-    to: [process_positive, process_high]
+node: !Node
+  - !chain
+      - !from example.random: {}
+      - .timing.every: {seconds: 0.1}
+      - .tqdm.counter: {desc: 'generated:'}
+      - !to [process_positive, process_high]
 
-  process_positive:
-    steps:
+  - !chain:process_positive
       - example.threshold: {val: 0}
-      - .output.dump: {prefix: 'pos!'}
+      - .output.dump: {prefix: 'POSITIVE:'}
       - example.Buffer: {}
       - .timing.every: {seconds: 5}
       - .output.dump: {prefix: 'Buffered positives:'}
       - example.count
-      - .output.dump: {prefix: 'Positive values: '}
+      - .output.dump: {prefix: 'Values>0: '}
 
-  process_high:
-    steps:
+  - !chain:process_high
       - example.threshold: {val: 3}
       - example.Buffer: {}
       - .timing.every: {seconds: 5}
       - example.count
-      - example.threshold: {val: 0} #discard values lower than 
-      - .output.dump: {prefix: 'We even have values>3: '}
+      - .output.dump: {prefix: 'Values>3: '}
 
 
 
-node_parallel:
-  generate:
-    source: 
-      example.gen_timestamp: {}
-    steps:
+node_parallel: !Node
+  - !chain
+      - !from example.gen_timestamp: {}
       - .timing.every: {seconds: 1}
       - snap.Parallel: 
-          function: {obj@example.blocking: {delay: 2}}
+          function: !obj:example.blocking {delay: 2.0}
+          executor: 'process'
           max_workers: 20
       - example.measure_latency
       - .output.dump: {prefix: "latency: "}
 
-node_blocking:
-  generate:
-    source: 
-      example.gen_timestamp: {}
-    steps:
+node_blocking: !Node
+  - !chain
+      - !from example.gen_timestamp: {}
       - .timing.every: {seconds: 1}
       - example.blocking: {delay: 1.2}
       - example.measure_latency

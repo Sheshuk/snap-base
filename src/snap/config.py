@@ -128,11 +128,22 @@ def construct_to(loader, data):
         tgt = [loader.construct_scalar(data)]
     return {'.io.send':{'address': tgt}}
 
+def construct_object(loader, name, data):
+    name = name.split(':',1)[-1]
+    print(f'cpnstruct_object from {name}, {data}')
+    cfg = loader.construct_mapping(data)
+    print(f'cfg={cfg}')
+    if cfg is None:
+        return find_python_obj(name)
+    else: 
+        return build_python_obj(name, cfg)
+
 loader = yaml.Loader
 loader.add_multi_constructor(u'!Node', construct_node)
 loader.add_multi_constructor(u'!chain', construct_chain)
 loader.add_constructor(u'!from', construct_from)
 loader.add_constructor(u'!to', construct_to)
+loader.add_multi_constructor(u'!obj', construct_object)
 
 def parse_env_vars(s):
     return os.path.expandvars(s)
