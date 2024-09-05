@@ -1,5 +1,5 @@
-node_branching: !Node:branching
-  - !chain:generate
+node_branching: !Node
+  - !chain
       - !from example.random: {}
       - .timing.every: {seconds: 1}
       - .output.dump: {prefix: 'generated:'}
@@ -7,7 +7,7 @@ node_branching: !Node:branching
 
   - !chain:process_positive
       - example.threshold: {val: 0}
-      - .output.dump: {prefix: 'pos!'}
+      - .output.dump: {prefix: 'POSITIVE:'}
       - example.Buffer: {}
       - .timing.every: {seconds: 5}
       - .output.dump: {prefix: 'Buffered positives:'}
@@ -19,28 +19,23 @@ node_branching: !Node:branching
       - example.Buffer: {}
       - .timing.every: {seconds: 5}
       - example.count
-      - example.threshold: {val: 0} #discard values lower than 
       - .output.dump: {prefix: 'We even have values>3: '}
 
 
 
-node_parallel:
-  generate:
-    source: 
-      example.gen_timestamp: {}
-    steps:
+node_parallel: !Node
+  - !chain
+      - !from example.gen_timestamp: {}
       - .timing.every: {seconds: 1}
       - snap.Parallel: 
-          function: {obj@example.blocking: {delay: 2}}
+          function: !obj:example.blocking {delay: 2}
           max_workers: 20
       - example.measure_latency
       - .output.dump: {prefix: "latency: "}
 
-node_blocking:
-  generate:
-    source: 
-      example.gen_timestamp: {}
-    steps:
+node_blocking: !Node
+  - !chain
+      - !from example.gen_timestamp: {}
       - .timing.every: {seconds: 1}
       - example.blocking: {delay: 1.2}
       - example.measure_latency
