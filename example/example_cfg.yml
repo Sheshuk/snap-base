@@ -28,7 +28,7 @@ node_parallel: !Node
       - !from example.gen_timestamp: {}
       - .timing.every: {seconds: 1}
       - snap.Parallel: 
-          function: !obj:example.blocking {delay: 2}
+          function: !obj:example.blocking {delay: 1.2}
           max_workers: 20
       - example.measure_latency
       - .output.dump: {prefix: "latency: "}
