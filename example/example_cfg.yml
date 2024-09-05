@@ -1,8 +1,8 @@
-node_branching: !Node
+node: !Node
   - !chain
       - !from example.random: {}
-      - .timing.every: {seconds: 1}
-      - .output.dump: {prefix: 'generated:'}
+      - .timing.every: {seconds: 0.1}
+      - .tqdm.counter: {desc: 'generated:'}
       - !to [process_positive, process_high]
 
   - !chain:process_positive
@@ -12,14 +12,14 @@ node_branching: !Node
       - .timing.every: {seconds: 5}
       - .output.dump: {prefix: 'Buffered positives:'}
       - example.count
-      - .output.dump: {prefix: 'Positive values: '}
+      - .output.dump: {prefix: 'Values>0: '}
 
   - !chain:process_high
       - example.threshold: {val: 3}
       - example.Buffer: {}
       - .timing.every: {seconds: 5}
       - example.count
-      - .output.dump: {prefix: 'We even have values>3: '}
+      - .output.dump: {prefix: 'Values>3: '}
 
 
 
@@ -28,7 +28,8 @@ node_parallel: !Node
       - !from example.gen_timestamp: {}
       - .timing.every: {seconds: 1}
       - snap.Parallel: 
-          function: !obj:example.blocking {delay: 1.2}
+          function: !obj:example.blocking {delay: 2.0}
+          executor: 'process'
           max_workers: 20
       - example.measure_latency
       - .output.dump: {prefix: "latency: "}
