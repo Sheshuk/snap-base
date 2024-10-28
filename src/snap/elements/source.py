@@ -60,7 +60,12 @@ async def read_lines(fname:str, delay:float=0):
     fo = sys.stdin if fname=='stdin' else open(fname)
     with fo as f:
         loop = asyncio.get_event_loop()
-        for line in f:
-            yield line.rstrip()
-            await asyncio.sleep(delay)
+        def do_read():
+            return f.read().splitlines()
+        with ThreadPoolExecutor() as exe:
+            while f:
+                lines = await loop.run_in_executor(exe, do_read)
+                for line in lines:
+                    yield line
+                    await asyncio.sleep(delay)
 
